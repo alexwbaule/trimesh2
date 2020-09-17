@@ -1,0 +1,1 @@
+add_subdirectory(../trimesh2/ trimesh2)
