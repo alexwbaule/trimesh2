@@ -7,7 +7,7 @@ Manipulate data structures that describe connectivity between faces and verts.
 */
 
 
-#include "TriMesh.h"
+#include "trimesh2/TriMesh.h"
 using namespace std;
 
 
@@ -102,7 +102,7 @@ void TriMesh::need_across_edge()
 	int nf = faces.size();
 	across_edge.resize(nf, Face(-1,-1,-1));
 
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nf; i++) {
 		for (int j = 0; j < 3; j++) {
 			int v1 = faces[i][NEXT_MOD3(j)];

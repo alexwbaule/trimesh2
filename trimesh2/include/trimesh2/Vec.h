@@ -758,6 +758,8 @@ typedef Vec<2,double> dvec2;
 typedef Vec<3,double> dvec3;
 typedef Vec<4,double> dvec4;
 
+typedef Vec<3, unsigned>    uivec3;
+
 
 // Nonmember operators that take two Vecs
 template <size_t D, class T>

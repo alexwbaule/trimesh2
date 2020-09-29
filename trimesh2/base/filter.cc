@@ -7,9 +7,9 @@ Miscellaneous filtering operations on trimeshes
 */
 
 
-#include "TriMesh.h"
-#include "TriMesh_algo.h"
-#include "lineqn.h"
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/TriMesh_algo.h"
+#include "trimesh2/lineqn.h"
 #include <numeric>
 using namespace std;
 #define dprintf TriMesh::dprintf
@@ -30,7 +30,7 @@ void inflate(TriMesh *mesh, float amount)
 
 	dprintf("Creating offset surface... ");
 	int nv = mesh->vertices.size();
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nv; i++)
 		mesh->vertices[i] += amount * mesh->normals[i];
 	dprintf("Done.\n");
@@ -44,13 +44,13 @@ void apply_xform(TriMesh *mesh, const xform &xf)
 {
 	int nv = mesh->vertices.size();
 
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nv; i++)
 		mesh->vertices[i] = xf * mesh->vertices[i];
 
 	if (!mesh->normals.empty()) {
 		xform nxf = norm_xf(xf);
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int i = 0; i < nv; i++) {
 			mesh->normals[i] = nxf * mesh->normals[i];
 			normalize(mesh->normals[i]);

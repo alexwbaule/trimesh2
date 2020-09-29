@@ -8,7 +8,7 @@ of a triangle (defined as Voronoi area restricted to the 1-ring of
 a vertex, or to the triangle).
 */
 
-#include "TriMesh.h"
+#include "trimesh2/TriMesh.h"
 
 
 namespace trimesh {
@@ -28,7 +28,7 @@ void TriMesh::need_pointareas()
 	cornerareas.clear();
 	cornerareas.resize(nf);
 
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nf; i++) {
 		// Edges
 		vec e[3] = { vertices[faces[i][2]] - vertices[faces[i][1]],
@@ -70,11 +70,11 @@ void TriMesh::need_pointareas()
 				cornerareas[i][j] = scale * (bcw[NEXT_MOD3(j)] +
 				                             bcw[PREV_MOD3(j)]);
 		}
-#pragma omp atomic
+//#pragma omp atomic
 		pointareas[faces[i][0]] += cornerareas[i][0];
-#pragma omp atomic
+//#pragma omp atomic
 		pointareas[faces[i][1]] += cornerareas[i][1];
-#pragma omp atomic
+//#pragma omp atomic
 		pointareas[faces[i][2]] += cornerareas[i][2];
 	}
 

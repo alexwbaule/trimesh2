@@ -6,8 +6,8 @@ TriMesh_stats.cc
 Computation of various statistics on the mesh.
 */
 
-#include "TriMesh.h"
-#include "KDtree.h"
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/KDtree.h"
 #include <numeric>
 using namespace std;
 

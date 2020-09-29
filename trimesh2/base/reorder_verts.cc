@@ -6,8 +6,8 @@ reorder_verts.cc
 Reorder and remap vertices.
 */
 
-#include "TriMesh.h"
-#include "TriMesh_algo.h"
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/TriMesh_algo.h"
 using namespace std;
 #define dprintf TriMesh::dprintf
 #define eprintf TriMesh::eprintf

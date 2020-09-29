@@ -8,8 +8,8 @@ Can read: PLY (triangle mesh, range grid), OFF, OBJ, RAY, SM, 3DS, VVD, STL, PTS
 Can write: PLY (triangle mesh, range grid), OFF, OBJ, RAY, SM, STL, PTS, C++, DAE
 */
 
-#include "TriMesh.h"
-#include "endianutil.h"
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/endianutil.h"
 
 #include <cstdio>
 #include <cerrno>

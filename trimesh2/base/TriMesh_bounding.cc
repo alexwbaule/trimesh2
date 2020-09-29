@@ -7,8 +7,8 @@ Bounding box and bounding sphere.
 */
 
 
-#include "TriMesh.h"
-#include "bsphere.h"
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/bsphere.h"
 using namespace std;
 
 

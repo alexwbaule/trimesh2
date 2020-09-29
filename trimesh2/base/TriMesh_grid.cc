@@ -6,8 +6,8 @@ TriMesh_grid.cc
 Code for dealing with range grids
 */
 
-#include "TriMesh.h"
-#include "TriMesh_algo.h"
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/TriMesh_algo.h"
 
 
 namespace trimesh {

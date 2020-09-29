@@ -14,9 +14,9 @@ unless need_normals(true) is called.
 For raw point clouds, fits plane to k nearest neighbors.
 */
 
-#include "TriMesh.h"
-#include "KDtree.h"
-#include "lineqn.h"
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/KDtree.h"
+#include "trimesh2/lineqn.h"
 using namespace std;
 
 
@@ -125,7 +125,7 @@ static void normals_from_faces_Max(vector<TriMesh::Face> &faces,
 	vector<point> &vertices, vector<vec> &normals)
 {
 	int nf = faces.size();
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nf; i++) {
 		const point &p0 = vertices[faces[i][0]];
 		const point &p1 = vertices[faces[i][1]];
@@ -147,7 +147,7 @@ static void normals_from_faces_area(vector<TriMesh::Face> &faces,
 	vector<point> &vertices, vector<vec> &normals)
 {
 	int nf = faces.size();
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nf; i++) {
 		const point &p0 = vertices[faces[i][0]];
 		const point &p1 = vertices[faces[i][1]];
@@ -169,7 +169,7 @@ static void normals_from_points(vector<point> &vertices, vector<vec> &normals)
 	const float approx_eps = 0.05f;
 	KDtree kd(vertices);
 	int nv = vertices.size();
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nv; i++) {
 		vector<const float *> knn;
 		kd.find_k_closest_to_pt(knn, k, vertices[i], approx_eps);
@@ -226,7 +226,7 @@ void TriMesh::need_normals(bool simple_area_weighted /* = false */)
 	}
 
 	// Make them all unit-length
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nv; i++)
 		normalize(normals[i]);
 

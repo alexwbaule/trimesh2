@@ -1,4 +1,4 @@
-#include "Vec3Utils.h"
+#include "trimesh2/Vec3Utils.h"
 
 namespace trimesh
 {

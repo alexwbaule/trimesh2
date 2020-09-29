@@ -11,9 +11,9 @@ Uses algorithm from
  Proc. 3DPVT, 2004.
 */
 
-#include "TriMesh.h"
-#include "TriMesh_algo.h"
-#include "lineqn.h"
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/TriMesh_algo.h"
+#include "trimesh2/lineqn.h"
 using namespace std;
 
 
@@ -165,7 +165,7 @@ void TriMesh::need_curvatures()
 		pdir1[faces[i][2]] = vertices[faces[i][0]] -
 		                     vertices[faces[i][2]];
 	}
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nv; i++) {
 		pdir1[i] = pdir1[i] TRICROSS normals[i];
 		normalize(pdir1[i]);
@@ -173,7 +173,7 @@ void TriMesh::need_curvatures()
 	}
 
 	// Compute curvature per-face
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nf; i++) {
 		// Edges
 		vec e[3] = { vertices[faces[i][2]] - vertices[faces[i][1]],
@@ -226,17 +226,17 @@ void TriMesh::need_curvatures()
 			proj_curv(t, b, m[0], m[1], m[2],
 			          pdir1[vj], pdir2[vj], c1, c12, c2);
 			float wt = cornerareas[i][j] / pointareas[vj];
-#pragma omp atomic
+//#pragma omp atomic
 			curv1[vj]  += wt * c1;
-#pragma omp atomic
+//#pragma omp atomic
 			curv12[vj] += wt * c12;
-#pragma omp atomic
+//#pragma omp atomic
 			curv2[vj]  += wt * c2;
 		}
 	}
 
 	// Compute principal directions and curvatures at each vertex
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nv; i++) {
 		diagonalize_curv(pdir1[i], pdir2[i],
 		                 curv1[i], curv12[i], curv2[i],
@@ -261,7 +261,7 @@ void TriMesh::need_dcurv()
 	dcurv.clear(); dcurv.resize(nv);
 
 	// Compute dcurv per-face
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < nf; i++) {
 		// Edges
 		vec e[3] = { vertices[faces[i][2]] - vertices[faces[i][1]],

@@ -6,7 +6,7 @@ TriMesh_tstrips.cc
 Code for dealing with triangle strips
 */
 
-#include "TriMesh.h"
+#include "trimesh2/TriMesh.h"
 using namespace std;
 
 
