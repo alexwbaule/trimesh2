@@ -20,6 +20,9 @@ namespace trimesh
 #ifdef WIN32
 		if (!_finite(angle) || angle > M_PI)
 			angle = 0.0;
+#elif __APPLE__
+	    if (!isfinite(angle) || angle > M_PI)
+			angle = 0.0;
 #else
         if (!__finite(angle) || angle > M_PI)
             angle = 0.0;
@@ -38,6 +41,11 @@ namespace trimesh
 		float h2 = __max(fabs(dy), __min(fabs(size.y - c.y), fabs(c.y)));
 
 		float maxdim = __max(w2, h2);
+#elif __APPLE__
+        float w2 = fmax(fabs(dx), fmin(fabs(size.x - c.x), fabs(c.x)));
+		float h2 = fmax(fabs(dy), fmin(fabs(size.y - c.y), fabs(c.y)));
+
+		float maxdim = fmax(w2, h2);
 #else
         float w2 = __fmax(fabs(dx), __fmin(fabs(size.x - c.x), fabs(c.x)));
         float h2 = __fmax(fabs(dy), __fmin(fabs(size.y - c.y), fabs(c.y)));
