@@ -816,6 +816,40 @@ static bool IsAsciiSTL(FILE* f, unsigned int fileSize) {
 	return isASCII;
 }
 
+std::vector<std::string> vStringSplit(const std::string& s, const std::string& delim = ",")
+{
+	std::vector<std::string> elems;
+	size_t pos = 0;
+	size_t len = s.length();
+	size_t delim_len = delim.length();
+	if (delim_len == 0) return elems;
+	while (pos < len)
+	{
+		int find_pos = s.find(delim, pos);
+		if (find_pos < 0)
+		{
+			elems.push_back(s.substr(pos, len - pos));
+			break;
+		}
+		elems.push_back(s.substr(pos, find_pos - pos));
+		pos = find_pos + delim_len;
+	}
+	return elems;
+}
+
+std::string trimStr(std::string& s)
+{
+	size_t n = s.find_last_not_of(" \r\n\t");
+	if (n != string::npos) {
+		s.erase(n + 1, s.size() - n);
+	}
+	n = s.find_first_not_of(" \r\n\t");
+	if (n != string::npos) {
+		s.erase(0, n);
+	}
+	return s;
+}
+
 static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize)
 {
 	if (!IsAsciiSTL(f, fileSize))
@@ -832,14 +866,17 @@ static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize)
 	{
 		fgets(line, 1024, f);
 
-		std::vector<std::string> segs;
+		std::string sourceLine(line);
+		sourceLine = trimStr(sourceLine);
 
-		char* p = strtok(line, d);
-		while (p)
-		{
-			segs.push_back(p);
-			p = strtok(NULL, d);
-		}
+		std::vector<std::string> segs = vStringSplit(sourceLine, " ");
+
+		//char* p = strtok(line, d);
+		//while (p)
+		//{
+		//	segs.push_back(p);
+		//	p = strtok(NULL, d);
+		//}
 
 		if (segs.size() == 4 && !strcmp(segs.at(0).c_str(), "vertex"))
 		{
