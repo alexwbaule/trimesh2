@@ -828,10 +828,15 @@ std::vector<std::string> vStringSplit(const std::string& s, const std::string& d
 		int find_pos = s.find(delim, pos);
 		if (find_pos < 0)
 		{
-			elems.push_back(s.substr(pos, len - pos));
+			std::string t = s.substr(pos, len - pos);
+			if(!t.empty())
+				elems.push_back(t);
 			break;
 		}
-		elems.push_back(s.substr(pos, find_pos - pos));
+
+		std::string t = s.substr(pos, find_pos - pos);
+		if (!t.empty())
+			elems.push_back(t);
 		pos = find_pos + delim_len;
 	}
 	return elems;
