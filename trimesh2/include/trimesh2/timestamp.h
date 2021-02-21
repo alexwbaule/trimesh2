@@ -72,18 +72,17 @@ static inline void usleep(unsigned x)
 
 #else
 
-typedef struct timeval timestamp;
-
+struct timestamp { timeval t; };
 static inline float operator - (const timestamp &t1, const timestamp &t2)
 {
-	return (float)(t1.tv_sec  - t2.tv_sec) +
-	       1.0e-6f * (t1.tv_usec - t2.tv_usec);
+	return (float)(t1.t.tv_sec  - t2.t.tv_sec) +
+	       1.0e-6f * (t1.t.tv_usec - t2.t.tv_usec);
 }
 
 static inline timestamp now()
 {
 	timestamp t;
-	gettimeofday(&t, 0);
+	gettimeofday(&t.t, 0);
 	return t;
 }
 
