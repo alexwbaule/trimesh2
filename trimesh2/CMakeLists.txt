@@ -12,3 +12,7 @@ if(INSTALL_TRIMESH2)
 endif()
 
 set_property(TARGET trimesh2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+
+if(CC_INSTALL_TRIMESH)
+	__install_inc_directory(${CMAKE_CURRENT_SOURCE_DIR}/include/)
+endif()
