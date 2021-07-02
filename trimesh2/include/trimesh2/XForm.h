@@ -324,7 +324,7 @@ public:
 	static inline XForm<T> lookat(const S& eye, const S& center, const S& up)
 	{
 		S forward = center - eye;
-		if((abs(forward[0]) < 0.0000001) && (abs(forward[1]) < 0.0000001) && (abs(forward[2]) < 0.0000001))
+		if((fabs(forward[0]) < 0.0000001) && (fabs(forward[1]) < 0.0000001) && (fabs(forward[2]) < 0.0000001))
 			return XForm<T>::identity();;
 
 		normalize(forward);
