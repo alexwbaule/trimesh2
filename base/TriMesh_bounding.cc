@@ -22,8 +22,16 @@ void TriMesh::need_bbox()
 
 	dprintf("Computing bounding box... ");
 
-	for (size_t i = 0; i < vertices.size(); i++)
-		bbox += vertices[i];
+	if (flags.size() > 0)
+	{
+		for (unsigned int i : flags)
+			bbox += vertices[i];
+	}
+	else
+	{
+		for (size_t i = 0; i < vertices.size(); i++)
+			bbox += vertices[i];
+	}
 
 	dprintf("Done.\n  x = %g .. %g, y = %g .. %g, z = %g .. %g\n",
 		bbox.min[0], bbox.max[0], bbox.min[1],

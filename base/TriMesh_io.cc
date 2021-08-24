@@ -46,8 +46,7 @@ static bool read_ray(FILE *f, TriMesh *mesh);
 static bool read_obj(FILE *f, TriMesh *mesh);
 static bool read_off(FILE *f, TriMesh *mesh);
 static bool read_sm (FILE *f, TriMesh *mesh);
-static bool read_stl(FILE *f, TriMesh *mesh, triProgressFunc func);
-static bool read_stl_text(FILE* f, TriMesh* mesh);
+static bool read_stl(FILE *f, size_t fileSize, TriMesh *mesh, triProgressFunc func, interuptFunc iFunc, int& errorCode);
 
 static bool read_pts(FILE *f, TriMesh *mesh);
 
@@ -122,104 +121,76 @@ static void pushback(const char *buf, FILE *f)
 
 
 // std::string versions of read/write
-TriMesh *TriMesh::read(const ::std::string &filename)
+TriMesh *TriMesh::read(const ::std::string &filename, const ::std::string &extension, int& errorCode, triProgressFunc func, interuptFunc iFunc)
 {
-	return read(filename.c_str());
+	return read(filename.c_str(), extension, errorCode, func, iFunc);
 }
 
-bool TriMesh::write(const ::std::string &filename)
+bool TriMesh::write(const ::std::string &filename, int& errorCode, triProgressFunc func)
 {
-	return write(filename.c_str());
+	return write(filename.c_str(), errorCode, func);
 }
 
 
 // Read a TriMesh from a file.  Defined to use a helper function to make
 // subclassing easier.
-TriMesh *TriMesh::read(const char *filename)
+TriMesh *TriMesh::read(const char *filename, const ::std::string &extension, int& errorCode, triProgressFunc func, interuptFunc iFunc)
 {
 	TriMesh *mesh = new TriMesh();
 
-	if (read_helper(filename, mesh))
+	if (read_helper(filename, extension, mesh, errorCode, func, iFunc))
 		return mesh;
 
 	delete mesh;
 	return NULL;
 }
 
-TriMesh * TriMesh::read(int fd, triProgressFunc func)
+TriMesh * TriMesh::read(int fd, const std::string& extension, int& errorCode, triProgressFunc func, interuptFunc iFunc)
 {
 	TriMesh *mesh = new TriMesh();
 
-	bool ok = false;
+	if(read_helper(fd, extension, mesh, errorCode, func, iFunc))
+		return mesh;
 
-	FILE *fp = NULL;
-	fp = fdopen(fd, "r");       /*文件描述符转换为文件指针*/
-	if (NULL != fp)
-	{
+	delete mesh;
+	return NULL;
+}
+
+bool TriMesh::read_helper(FILE* f, const std::string& extension, TriMesh* mesh, int& errorCode, triProgressFunc func, interuptFunc iFunc)
+{
+	if (!f) {
+		errorCode = 1;
 #if defined(__ANDROID__)
-		LOGI("transform fd -> fp successfully...\n");
+		LOGI("file open error. ---> %s", strerror(errno));
 #endif
-		ok = read_stl(fp, mesh, func);
-	}
-
-	if (ok)
-		return mesh;
-
-	delete mesh;
-	return NULL;
-}
-
-// Actually read a mesh.  Tries to figure out type of file from first
-// few bytes.  Filename can be "-" for stdin.
-// STL and PTS don't have magic numbers, so we recognize file.stl and stl:-
-// (and same for pts) constructions.
-bool TriMesh::read_helper(const char *filename, TriMesh *mesh)
-{
-	if (!filename || *filename == '\0')
 		return false;
-
-	FILE *f = NULL;
-	bool ok = false;
-	int c;
-
-	if (strcmp(filename, "-") == 0) {
-		f = stdin;
-		filename = "standard input";
-	} else if (begins_with(filename, "stl:-")) {
-		f = stdin;
-		filename = "standard input";
-	} else {
-		f = fopen(filename, "rb");
-		if (!f) {
-#if defined(__ANDROID__)
-			LOGI("Error opening [%s] for reading: %s.\n", filename,
-				 strerror(errno));
-#else
-			eprintf("Error opening [%s] for reading: %s.\n", filename,
-				strerror(errno));
-#endif
-			return false;
-		}
 	}
-	dprintf("Reading %s... ", filename);
+
+	dprintf("Reading ... ");
+
+	unsigned int fileSize = 0;
+	fseek(f, 0L, SEEK_END);
+	fileSize = ftell(f);
+	fseek(f, 0L, SEEK_SET);
+
+#if defined(__ANDROID__)
+	LOGI("file size ...%d\n", fileSize);
+#endif
 
 	// STL
-	if (begins_with(filename, "stl:-") || ends_with(filename, ".stl")) {
-		ok = read_stl(f, mesh, triProgressFunc());
-		goto out;
-	}
+	if (extension == "stl")
+		return read_stl(f, fileSize, mesh, func, iFunc, errorCode);
 
 	// PTS
-	if (begins_with(filename, "pts:-") || ends_with(filename, ".pts")) {
-		ok = read_pts(f, mesh);
-		goto out;
+	if (extension == "pts") {
+		return read_pts(f, mesh);
 	}
 
 	// Else recognize based on header
-	c = fgetc(f);
+	int c = fgetc(f);
 	if (c == EOF) {
 		eprintf("Can't read header.\n");
-		goto out;
+		return false;
 	}
 
 	if (c == 'p') {
@@ -227,68 +198,122 @@ bool TriMesh::read_helper(const char *filename, TriMesh *mesh)
 		char buf[4];
 		if (!fgets(buf, 4, f)) {
 			eprintf("Can't read header.\n");
-			goto out;
+			return false;
 		}
 		if (strncmp(buf, "ly", 2) == 0)
-			ok = read_ply(f, mesh);
+			return read_ply(f, mesh);
 	} else if (c == 0x4d) {
 		int c2 = fgetc(f);
 		ungetc(c2, f);
 		ungetc(c, f);
 		if (c2 == 0x4d)
-			ok = read_3ds(f, mesh);
+			return read_3ds(f, mesh);
 	} else if (c == 'V') {
 		char buf[5];
 		if (!fgets(buf, 5, f)) {
 			eprintf("Can't read header.\n");
-			goto out;
+			return false;
 		}
 		if (strncmp(buf, "IVID", 4) == 0)
-			ok = read_vvd(f, mesh);
+			return read_vvd(f, mesh);
 	} else if (c == '#') {
 		char buf[1024];
 		GET_LINE();
 		if (LINE_IS("material") || LINE_IS("vertex") ||
-		    LINE_IS("shape_")) {
+			LINE_IS("shape_")) {
 			// Assume a ray file
 			pushback(buf, f);
 			ungetc(c, f);
-			ok = read_ray(f, mesh);
+			return read_ray(f, mesh);
 		} else {
 			// Assume an obj file
-			ok = read_obj(f, mesh);
+			return read_obj(f, mesh);
 		}
 	} else if (c == 'v' || c == 'u' || c == 'f' || c == 'g' ||
-	           c == 's' || c == 'o' || c == 'm') {
+			   c == 's' || c == 'o' || c == 'm') {
 		// Assume an obj file
 		ungetc(c, f);
-		ok = read_obj(f, mesh);
+		return read_obj(f, mesh);
 	} else if (c == 'O') {
 		// Assume an OFF file
 		char buf[3];
 		if (!fgets(buf, 3, f)) {
 			eprintf("Can't read header.\n");
-			goto out;
+			return false;
 		}
 		if (strncmp(buf, "FF", 2) == 0)
-			ok = read_off(f, mesh);
+			return read_off(f, mesh);
 	} else if (isdigit(c)) {
 		// Assume an old-style sm file
 		ungetc(c, f);
-		ok = read_sm(f, mesh);
+		return read_sm(f, mesh);
 	} else {
+		errorCode = 2;
 		eprintf("Unknown file type.\n");
-	}
-
-out:
-	if (f)
-		fclose(f);
-	if (!ok) {
-		eprintf("Error reading file [%s].\n", filename);
 		return false;
 	}
 
-	dprintf("Done.\n");
+	return false;
+}
+
+bool TriMesh::read_helper(const char *filename, const ::std::string &proExtension, TriMesh *mesh, int& errorCode, triProgressFunc func, interuptFunc iFunc)
+{
+	if (!filename || *filename == '\0')
+		return false;
+
+	FILE *f = fopen(filename, "rb");
+	std::string extension = "";
+
+	if (begins_with(filename, "stl:-") || ends_with(filename, ".stl") || ends_with(filename, ".STL")) {
+		extension = "stl";
+	}
+
+	// PTS
+	if (begins_with(filename, "pts:-") || ends_with(filename, ".pts")) {
+		extension = "pts";
+	}
+
+	if(extension.empty())
+		extension = proExtension;
+
+	bool ok = read_helper(f, extension, mesh, errorCode, func, iFunc);
+
+	if (f)
+		fclose(f);
+	if (!ok) {
+
+		return false;
+	}
+
+	if(mesh->vertices.size() == 0)
+	{
+		errorCode = 4;
+		return false;
+	}
+	check_ind_range(mesh);
+	return true;
+}
+
+bool TriMesh::read_helper(int fd, const std::string& extension, TriMesh* mesh, int& errorCode, triProgressFunc func, interuptFunc iFunc)
+{
+	FILE *f = fdopen(fd, "rb");       /*文件描述符转换为文件指针*/
+#if defined(__ANDROID__)
+	if(f) LOGI("transform fd -> fp successfully...\n");
+#endif
+	bool ok = read_helper(f, extension, mesh, errorCode, func, iFunc);
+
+	if (f)
+		fclose(f);
+	if (!ok) {
+
+		return false;
+	}
+
+	if(mesh->vertices.size() == 0)
+	{
+		errorCode = 4;
+		return false;
+	}
 	check_ind_range(mesh);
 	return true;
 }
@@ -887,16 +912,24 @@ std::string trimStr(std::string& s)
 	return s;
 }
 
-static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize)
+static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize, triProgressFunc func, interuptFunc iFunc, int& errorCode)
 {
-	if (!IsAsciiSTL(f, fileSize))
+	if (!IsAsciiSTL(f, fileSize)) {
+		errorCode = 3;
 		return false;
-
+	}
 	fseek(f, 0L, SEEK_SET);
 	char line[1024] = { '\0' };
 
 	int face = 0;
 	int n = 0;
+
+	size_t curSize = 0;
+	size_t deltaSize = fileSize / 10;
+	size_t nextSize = 0;
+
+	size_t interSize = fileSize / 100;
+	size_t iNextSize = 0;
 
 	const char* d = " ";
 	while (!feof(f))
@@ -904,16 +937,32 @@ static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize)
 		fgets(line, 1024, f);
 
 		std::string sourceLine(line);
+
+		curSize += strlen(line);
+		if(curSize > nextSize)
+		{
+			if (func)
+            {
+#if defined(__ANDROID__)
+                LOGI("parse text stl bytes %d\n", (int)curSize);
+#endif
+			    func((float)curSize / (float)fileSize);
+            }
+
+			nextSize += deltaSize;
+		}
+
+		if (curSize > iNextSize)
+		{
+			if (iFunc())
+				return false;
+
+			iNextSize += interSize;
+		}
+
 		sourceLine = trimStr(sourceLine);
 
 		std::vector<std::string> segs = vStringSplit(sourceLine, " ");
-
-		//char* p = strtok(line, d);
-		//while (p)
-		//{
-		//	segs.push_back(p);
-		//	p = strtok(NULL, d);
-		//}
 
 		if (segs.size() == 4 && !strcmp(segs.at(0).c_str(), "vertex"))
 		{
@@ -933,29 +982,19 @@ static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize)
 		f.x = 3 * i;
 		f.y = 3 * i + 1;
 		f.z = 3 * i + 2;
-
 	}
 	return true;
 }
 
 // Read a binary STL file
-static bool read_stl(FILE *f, TriMesh *mesh, triProgressFunc func)
+static bool read_stl(FILE *f, size_t fileSize, TriMesh *mesh, triProgressFunc func, interuptFunc iFunc, int& errorCode)
 {
-	unsigned int fileSize = 0;
-	fseek(f, 0L, SEEK_END);
-	fileSize = ftell(f);
-	fseek(f, 0L, SEEK_SET);
-
-#if defined(__ANDROID__)
-		LOGI("file size ...%d\n", fileSize);
-#endif
-
-	if (!IsBinarySTL(f, fileSize))
+	if (IsAsciiSTL(f, fileSize))
 	{
 #if defined(__ANDROID__)
 		LOGI("parse ascii stl ...\n");
 #endif
-		return read_stl_text(f, mesh, fileSize);
+		return read_stl_text(f, mesh, fileSize, func, iFunc, errorCode);
 	}
 
 	fseek(f, 0, SEEK_SET);
@@ -973,14 +1012,21 @@ static bool read_stl(FILE *f, TriMesh *mesh, triProgressFunc func)
 		LOGI("parse binary stl ...face %d\n", nfacets);
 #endif
 
-	mesh->faces.reserve(nfacets);
-	mesh->vertices.reserve(3*nfacets);
+	//mesh->faces.reserve(nfacets);
+	//mesh->vertices.reserve(3*nfacets);
+
+	int calltime = nfacets / 10;
+	int interTimes = nfacets / 100;
+	if(calltime <= 0)
+		calltime = nfacets;
 	for (int i = 0; i < nfacets; i++) {
 
-		if (func && i % 5000 == 1)
+		if (func && i % calltime == 1)
 		{
 			func((float)i / (float)nfacets);
 		}
+		if (iFunc && i % interTimes == 1 && iFunc())
+			return false;
 
 		float fbuf[12];
 		COND_READ(true, fbuf, 48);
@@ -998,7 +1044,7 @@ static bool read_stl(FILE *f, TriMesh *mesh, triProgressFunc func)
 	}
 
 #if defined(__ANDROID__)
-		LOGI("parse binary stl sucess...\n");
+		LOGI("parse binary stl success...\n");
 #endif
 	return true;
 }
@@ -1023,7 +1069,6 @@ static bool read_pts(FILE *f, TriMesh *mesh)
 		mesh->normals.clear();
 	return true;
 }
-
 
 // Read nverts vertices from a binary file.
 // vert_len = total length of a vertex record in bytes
@@ -1577,13 +1622,14 @@ static void tess(const vector<point> &verts, const vector<int> &thisface,
 
 
 // Write mesh to a file
-bool TriMesh::write(const char *filename)
+bool TriMesh::write(const char *filename, int& errorCode, triProgressFunc func)
 {
 	if (!filename || *filename == '\0') {
 		eprintf("Can't write to empty filename.\n");
 #if defined(__ANDROID__)
 		LOGI("Can't write to empty filename.\n");
 #endif
+		errorCode = 1;
 		return false;
 	}
 
@@ -1592,6 +1638,7 @@ bool TriMesh::write(const char *filename)
 #if defined(__ANDROID__)
 		LOGI("Empty mesh - nothing to write.\n");
 #endif
+		errorCode = 2;
 		return false;
 	}
 
@@ -1720,6 +1767,7 @@ bool TriMesh::write(const char *filename)
 #if defined(__ANDROID__)
 			LOGI("Error opening [%s] for writing: %s.\n", filename, strerror(errno));
 #endif
+			errorCode = 3;
 			return false;
 		}
 	}

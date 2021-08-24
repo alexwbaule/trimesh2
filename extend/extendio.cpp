@@ -16,7 +16,8 @@ namespace trimesh
 				face[1] = 3 * i + 1;
 				face[2] = 3 * i + 2;
 			}
-			mesh->write(name);
+			int errorCode = 0;
+			mesh->write(name, errorCode);
 		}
 	}
 }

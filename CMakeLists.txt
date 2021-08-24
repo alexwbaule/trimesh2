@@ -1,9 +1,14 @@
-cmake_minimum_required(VERSION 3.1)
+file(GLOB BASE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/base/*.cc)
+file(GLOB EXTEND_SRC ${CMAKE_CURRENT_SOURCE_DIR}/extend/*.cpp)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
-include(ConfigureAllModules) 
+set(SRCS ${BASE_SRC} ${EXTEND_SRC})
+set(INCS ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
-project(trimesh2)
-add_subdirectory(trimesh2)
+__add_real_target(trimesh2 lib SOURCE ${SRCS} INC ${INCS})
+set_property(TARGET trimesh2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${INCLUDE_DIR})
 
-__configure_all()
+if(INSTALL_TRIMESH2)
+	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h")
+endif()
+
+set_property(TARGET trimesh2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/include/)
