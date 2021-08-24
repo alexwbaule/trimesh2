@@ -22,6 +22,9 @@ namespace trimesh
 			angle = 0.0;
 #elif __APPLE__
 	    if (!isfinite(angle) || angle > M_PI)
+            angle = 0.0;
+#elif defined(__ANDROID__)
+		if (!isfinite(angle) || angle > M_PI)
 			angle = 0.0;
 #else
         if (!__finite(angle) || angle > M_PI)
@@ -43,6 +46,11 @@ namespace trimesh
 		float maxdim = __max(w2, h2);
 #elif __APPLE__
         float w2 = fmax(fabs(dx), fmin(fabs(size.x - c.x), fabs(c.x)));
+		float h2 = fmax(fabs(dy), fmin(fabs(size.y - c.y), fabs(c.y)));
+
+		float maxdim = fmax(w2, h2);
+#elif defined(__ANDROID__)
+		float w2 = fmax(fabs(dx), fmin(fabs(size.x - c.x), fabs(c.x)));
 		float h2 = fmax(fabs(dy), fmin(fabs(size.y - c.y), fabs(c.y)));
 
 		float maxdim = fmax(w2, h2);

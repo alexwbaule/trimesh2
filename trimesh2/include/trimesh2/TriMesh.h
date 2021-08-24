@@ -13,9 +13,11 @@ Class for triangle meshes.
 #include "Color.h"
 #include "strutil.h"
 #include <vector>
-
+#include <functional>
 
 namespace trimesh {
+
+	typedef std::function<void(float)> triProgressFunc;
 
 template <class T>
 static inline void clear_and_release(::std::vector<T> &v)
@@ -176,6 +178,8 @@ protected:
 public:
 	static TriMesh *read(const char *filename);
 	static TriMesh *read(const ::std::string &filename);
+	static TriMesh *read(int fd, triProgressFunc func);
+
 	bool write(const char *filename);
 	bool write(const ::std::string &filename);
 

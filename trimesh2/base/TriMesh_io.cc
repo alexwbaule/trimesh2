@@ -29,7 +29,12 @@ using namespace std;
 #define LINE_IS(text) begins_with(buf, text)
 
 #define BIGNUM 1.0e10f
-
+#if defined(__ANDROID__)
+#include <android/log.h>
+#define  LOG_TAG    "trimesh2"
+#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#endif
 
 namespace trimesh {
 
@@ -41,7 +46,7 @@ static bool read_ray(FILE *f, TriMesh *mesh);
 static bool read_obj(FILE *f, TriMesh *mesh);
 static bool read_off(FILE *f, TriMesh *mesh);
 static bool read_sm (FILE *f, TriMesh *mesh);
-static bool read_stl(FILE *f, TriMesh *mesh);
+static bool read_stl(FILE *f, TriMesh *mesh, triProgressFunc func);
 static bool read_stl_text(FILE* f, TriMesh* mesh);
 
 static bool read_pts(FILE *f, TriMesh *mesh);
@@ -141,6 +146,28 @@ TriMesh *TriMesh::read(const char *filename)
 	return NULL;
 }
 
+TriMesh * TriMesh::read(int fd, triProgressFunc func)
+{
+	TriMesh *mesh = new TriMesh();
+
+	bool ok = false;
+
+	FILE *fp = NULL;
+	fp = fdopen(fd, "r");       /*文件描述符转换为文件指针*/
+	if (NULL != fp)
+	{
+#if defined(__ANDROID__)
+		LOGI("transform fd -> fp successfully...\n");
+#endif
+		ok = read_stl(fp, mesh, func);
+	}
+
+	if (ok)
+		return mesh;
+
+	delete mesh;
+	return NULL;
+}
 
 // Actually read a mesh.  Tries to figure out type of file from first
 // few bytes.  Filename can be "-" for stdin.
@@ -164,8 +191,13 @@ bool TriMesh::read_helper(const char *filename, TriMesh *mesh)
 	} else {
 		f = fopen(filename, "rb");
 		if (!f) {
+#if defined(__ANDROID__)
+			LOGI("Error opening [%s] for reading: %s.\n", filename,
+				 strerror(errno));
+#else
 			eprintf("Error opening [%s] for reading: %s.\n", filename,
 				strerror(errno));
+#endif
 			return false;
 		}
 	}
@@ -173,7 +205,7 @@ bool TriMesh::read_helper(const char *filename, TriMesh *mesh)
 
 	// STL
 	if (begins_with(filename, "stl:-") || ends_with(filename, ".stl")) {
-		ok = read_stl(f, mesh);
+		ok = read_stl(f, mesh, triProgressFunc());
 		goto out;
 	}
 
@@ -907,15 +939,22 @@ static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize)
 }
 
 // Read a binary STL file
-static bool read_stl(FILE *f, TriMesh *mesh)
+static bool read_stl(FILE *f, TriMesh *mesh, triProgressFunc func)
 {
 	unsigned int fileSize = 0;
 	fseek(f, 0L, SEEK_END);
 	fileSize = ftell(f);
 	fseek(f, 0L, SEEK_SET);
 
+#if defined(__ANDROID__)
+		LOGI("file size ...%d\n", fileSize);
+#endif
+
 	if (!IsBinarySTL(f, fileSize))
 	{
+#if defined(__ANDROID__)
+		LOGI("parse ascii stl ...\n");
+#endif
 		return read_stl_text(f, mesh, fileSize);
 	}
 
@@ -930,9 +969,19 @@ static bool read_stl(FILE *f, TriMesh *mesh)
 	if (need_swap)
 		swap_int(nfacets);
 
+#if defined(__ANDROID__)
+		LOGI("parse binary stl ...face %d\n", nfacets);
+#endif
+
 	mesh->faces.reserve(nfacets);
 	mesh->vertices.reserve(3*nfacets);
 	for (int i = 0; i < nfacets; i++) {
+
+		if (func && i % 5000 == 1)
+		{
+			func((float)i / (float)nfacets);
+		}
+
 		float fbuf[12];
 		COND_READ(true, fbuf, 48);
 		if (need_swap) {
@@ -947,6 +996,10 @@ static bool read_stl(FILE *f, TriMesh *mesh)
 		unsigned char att[2];
 		COND_READ(true, att, 2);
 	}
+
+#if defined(__ANDROID__)
+		LOGI("parse binary stl sucess...\n");
+#endif
 	return true;
 }
 
@@ -1528,11 +1581,17 @@ bool TriMesh::write(const char *filename)
 {
 	if (!filename || *filename == '\0') {
 		eprintf("Can't write to empty filename.\n");
+#if defined(__ANDROID__)
+		LOGI("Can't write to empty filename.\n");
+#endif
 		return false;
 	}
 
 	if (vertices.empty()) {
 		eprintf("Empty mesh - nothing to write.\n");
+#if defined(__ANDROID__)
+		LOGI("Empty mesh - nothing to write.\n");
+#endif
 		return false;
 	}
 
@@ -1657,6 +1716,10 @@ bool TriMesh::write(const char *filename)
 		if (!f) {
 			eprintf("Error opening [%s] for writing: %s.\n", filename,
 				strerror(errno));
+
+#if defined(__ANDROID__)
+			LOGI("Error opening [%s] for writing: %s.\n", filename, strerror(errno));
+#endif
 			return false;
 		}
 	}
@@ -1705,9 +1768,15 @@ bool TriMesh::write(const char *filename)
 	fclose(f);
 	if (!ok) {
 		eprintf("Error writing file [%s].\n", filename);
+#if defined(__ANDROID__)
+		LOGI("Error writing file [%s].\n", filename);
+#endif
 		return false;
 	}
 
+#if defined(__ANDROID__)
+	LOGI("Done.\n");
+#endif
 	dprintf("Done.\n");
 	return true;
 }
@@ -1922,6 +1991,10 @@ static bool write_sm(TriMesh *mesh, FILE *f)
 // Write an STL file
 static bool write_stl(TriMesh *mesh, FILE *f)
 {
+#if defined(__ANDROID__)
+		LOGI("write_stl.\n");
+#endif
+
 	bool need_swap = we_are_big_endian();
 
 	char header[80];
