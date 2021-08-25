@@ -174,7 +174,7 @@ public:
 	//
 	// Input and output
 	//
-	// Error Code   0 ÎÞ´íÎó£¬  1 ´ò¿ªÎÄ¼þÊ§°Ü
+	// Error Code   0 ï¿½Þ´ï¿½ï¿½ï¿½  1 ï¿½ï¿½ï¿½Ä¼ï¿½Ê§ï¿½ï¿½
 protected:
 	static bool read_helper(const char *filename, const ::std::string &extension, TriMesh *mesh, int& errorCode, triProgressFunc func, interuptFunc iFunc = interuptFunc());
 	static bool read_helper(int fd, const std::string& extension, TriMesh* mesh, int& errorCode, triProgressFunc func, interuptFunc iFunc = interuptFunc());
@@ -186,7 +186,8 @@ public:
 
 	bool write(const char *filename, int& errorCode, triProgressFunc func= triProgressFunc());
 	bool write(const ::std::string &filename, int& errorCode, triProgressFunc func= triProgressFunc());
-
+	bool write(const char *filename);
+	bool write(const ::std::string &filename);
 
 	//
 	// Useful queries

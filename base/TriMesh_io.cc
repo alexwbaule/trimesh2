@@ -1620,6 +1620,17 @@ static void tess(const vector<point> &verts, const vector<int> &thisface,
 		                             thisface[i]));
 }
 
+bool TriMesh::write(const char *filename)
+{
+	int errorCode = 0;
+	return write(filename, errorCode);
+}
+
+bool TriMesh::write(const ::std::string &filename)
+{
+	int errorCode = 0;
+	return write(filename, errorCode);
+}
 
 // Write mesh to a file
 bool TriMesh::write(const char *filename, int& errorCode, triProgressFunc func)
