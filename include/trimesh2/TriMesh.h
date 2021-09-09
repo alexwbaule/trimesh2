@@ -182,6 +182,7 @@ protected:
 public:
 	static TriMesh *read(const char *filename, const ::std::string &extension, int& errorCode, triProgressFunc func = triProgressFunc(), interuptFunc iFunc = interuptFunc());
 	static TriMesh *read(const ::std::string &filename, const ::std::string &extension, int& errorCode, triProgressFunc func = triProgressFunc(), interuptFunc iFunc = interuptFunc());
+	static TriMesh* read(const ::std::string& filename);
 	static TriMesh *read(int fd, const std::string& extension, int& errorCode, triProgressFunc func= triProgressFunc(), interuptFunc iFunc = interuptFunc());
 
 	bool write(const char *filename, int& errorCode, triProgressFunc func= triProgressFunc());
