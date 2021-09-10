@@ -174,7 +174,7 @@ public:
 	//
 	// Input and output
 	//
-	// Error Code   0 �޴���  1 ���ļ�ʧ��
+	// Error Code   0 无错误，  1 打开文件失败
 protected:
 	static bool read_helper(const char *filename, const ::std::string &extension, TriMesh *mesh, int& errorCode, triProgressFunc func, interuptFunc iFunc = interuptFunc());
 	static bool read_helper(int fd, const std::string& extension, TriMesh* mesh, int& errorCode, triProgressFunc func, interuptFunc iFunc = interuptFunc());
