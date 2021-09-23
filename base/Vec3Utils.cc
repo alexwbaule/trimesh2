@@ -55,8 +55,8 @@ namespace trimesh
 
 		float maxdim = fmax(w2, h2);
 #else
-        float w2 = fmax(fabs(dx), __fmin(fabs(size.x - c.x), fabs(c.x)));
-        float h2 = fmax(fabs(dy), __fmin(fabs(size.y - c.y), fabs(c.y)));
+        float w2 = fmax(fabs(dx), fmin(fabs(size.x - c.x), fabs(c.x)));
+        float h2 = fmax(fabs(dy), fmin(fabs(size.y - c.y), fabs(c.y)));
 
         float maxdim = fmax(w2, h2);
 
