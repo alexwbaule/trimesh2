@@ -960,9 +960,8 @@ static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize, triProg
 
 		if (curSize > iNextSize)
 		{
-			if (iFunc())
+			if (iFunc && iFunc())
 				return false;
-
 			iNextSize += interSize;
 		}
 
