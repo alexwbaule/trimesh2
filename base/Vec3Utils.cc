@@ -60,6 +60,11 @@ namespace trimesh
 #else
         float w2 = fmax(fabs(dx), fmin(fabs(size.x - c.x), fabs(c.x)));
         float h2 = fmax(fabs(dy), fmin(fabs(size.y - c.y), fabs(c.y)));
+<<<<<<< HEAD
+=======
+
+        float maxdim = fmax(w2, h2);
+>>>>>>> ef191db9a3165eec5a77b3c1e7f053d888288a82
 
         float maxdim = fmax(w2, h2);
 #endif

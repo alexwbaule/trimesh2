@@ -126,6 +126,12 @@ TriMesh *TriMesh::read(const ::std::string &filename, const ::std::string &exten
 	return read(filename.c_str(), extension, errorCode, func, iFunc);
 }
 
+TriMesh* TriMesh::read(const ::std::string& filename)
+{
+	int errorCode = 0;
+	return read(filename, "", errorCode);
+}
+
 bool TriMesh::write(const ::std::string &filename, int& errorCode, triProgressFunc func)
 {
 	return write(filename.c_str(), errorCode, func);
@@ -954,9 +960,8 @@ static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize, triProg
 
 		if (curSize > iNextSize)
 		{
-			if (iFunc())
+			if (iFunc && iFunc())
 				return false;
-
 			iNextSize += interSize;
 		}
 
