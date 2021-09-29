@@ -44,6 +44,7 @@ namespace trimesh
 		float h2 = __max(fabs(dy), __min(fabs(size.y - c.y), fabs(c.y)));
 
 		float maxdim = __max(w2, h2);
+<<<<<<< HEAD:base/Vec3Utils.cc
 #elif __APPLE__
         float w2 = fmax(fabs(dx), fmin(fabs(size.x - c.x), fabs(c.x)));
 		float h2 = fmax(fabs(dy), fmin(fabs(size.y - c.y), fabs(c.y)));
@@ -54,12 +55,13 @@ namespace trimesh
 		float h2 = fmax(fabs(dy), fmin(fabs(size.y - c.y), fabs(c.y)));
 
 		float maxdim = fmax(w2, h2);
+=======
+>>>>>>> 12420c6:trimesh2/base/Vec3Utils.cc
 #else
-        float w2 = __fmax(fabs(dx), __fmin(fabs(size.x - c.x), fabs(c.x)));
-        float h2 = __fmax(fabs(dy), __fmin(fabs(size.y - c.y), fabs(c.y)));
+        float w2 = fmax(fabs(dx), fmin(fabs(size.x - c.x), fabs(c.x)));
+        float h2 = fmax(fabs(dy), fmin(fabs(size.y - c.y), fabs(c.y)));
 
-        float maxdim = __fmax(w2, h2);
-
+        float maxdim = fmax(w2, h2);
 #endif
 		pt3d.x = dx / maxdim;
 		pt3d.y = dy / maxdim;
