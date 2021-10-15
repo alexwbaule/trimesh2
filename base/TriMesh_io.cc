@@ -741,7 +741,13 @@ static bool read_obj(FILE *f, TriMesh *mesh)
 				return false;
 			}
 			mesh->normals.push_back(vec(x,y,z));
-		} else if (LINE_IS("f ") || LINE_IS("f\t") ||
+		} else if (LINE_IS("vt") || LINE_IS("vt\t")) {
+            float x, y;
+            if (sscanf(buf+2, "%f %f", &x, &y) != 2) {
+                return false;
+            }
+            mesh->cornerareas.push_back(vec(x, y, 0.0));
+        } else if (LINE_IS("f ") || LINE_IS("f\t") ||
 		           LINE_IS("t ") || LINE_IS("t\t")) {
 			thisface.clear();
 			char *c = buf;
