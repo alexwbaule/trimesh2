@@ -15,6 +15,9 @@ Can write: PLY (triangle mesh, range grid), OFF, OBJ, RAY, SM, STL, PTS, C++, DA
 #include <cerrno>
 #include <cctype>
 #include <cstdarg>
+
+#include "ccglobal/log.h"
+
 using namespace std;
 
 #define dprintf TriMesh::dprintf
@@ -29,12 +32,6 @@ using namespace std;
 #define LINE_IS(text) begins_with(buf, text)
 
 #define BIGNUM 1.0e10f
-#if defined(__ANDROID__)
-#include <android/log.h>
-#define  LOG_TAG    "trimesh2"
-#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
-#endif
 
 namespace trimesh {
 
@@ -743,6 +740,7 @@ static bool read_obj_from_buffer(unsigned char* buffer, int count, TriMesh *mesh
             ++readBytes;
         }
 
+		data++;
         *b++ = '\0';
         ++readBytes;
     };
