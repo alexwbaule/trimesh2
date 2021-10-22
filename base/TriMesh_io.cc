@@ -107,7 +107,7 @@ static bool write_strips_asc(TriMesh *mesh, FILE *f);
 static bool write_strips_bin(TriMesh *mesh, FILE *f, bool need_swap);
 static bool write_grid_asc(TriMesh *mesh, FILE *f);
 static bool write_grid_bin(TriMesh *mesh, FILE *f, bool need_swap);
-
+static bool read_obj_from_buffer(unsigned char* data, int count, TriMesh *mesh);
 
 // unget a whole string of characters
 static void pushback(const char *buf, FILE *f)
@@ -160,6 +160,17 @@ TriMesh * TriMesh::read(int fd, const std::string& extension, int& errorCode, tr
 
 	delete mesh;
 	return NULL;
+}
+
+TriMesh* TriMesh::readFromObjBuffer(unsigned char* buffer, int count)
+{
+    TriMesh *mesh = new TriMesh();
+
+    if(read_obj_from_buffer(buffer, count, mesh))
+        return mesh;
+
+    delete mesh;
+    return NULL;
 }
 
 bool TriMesh::read_helper(FILE* f, const std::string& extension, TriMesh* mesh, int& errorCode, triProgressFunc func, interuptFunc iFunc)
@@ -718,6 +729,81 @@ static bool read_ray(FILE *f, TriMesh *mesh)
 	return true;
 }
 
+// Read an obj file
+static bool read_obj_from_buffer(unsigned char* buffer, int count, TriMesh *mesh)
+{
+    unsigned char* data = buffer;
+    int readBytes = 0;
+
+    auto get_line = [&data, &readBytes, &count](char* buf){
+        char* b = buf;
+        while(readBytes < count && *data != '\n')
+        {
+            *b++ = *data++;
+            ++readBytes;
+        }
+
+        *b++ = '\0';
+        ++readBytes;
+    };
+    vector<int> thisface;
+    LOGI("Start read_obj_from_buffer [%d]", count);
+    while (readBytes < count) {
+        char buf[1024];
+        get_line(buf);
+
+        if(readBytes < 1000 )
+            LOGI("read_obj_from_buffer %s", buf);
+        if (LINE_IS("v ") || LINE_IS("v\t")) {
+            float x, y, z;
+            if (sscanf(buf+1, "%f %f %f", &x, &y, &z) != 3) {
+                return false;
+            }
+            mesh->vertices.push_back(point(x,y,z));
+        } else if (LINE_IS("vn ") || LINE_IS("vn\t")) {
+            float x, y, z;
+            if (sscanf(buf+2, "%f %f %f", &x, &y, &z) != 3) {
+                return false;
+            }
+            mesh->normals.push_back(vec(x,y,z));
+        } else if (LINE_IS("vt") || LINE_IS("vt\t")) {
+            float x, y;
+            if (sscanf(buf+2, "%f %f", &x, &y) != 2) {
+                return false;
+            }
+            mesh->cornerareas.push_back(vec(x, y, 0.0));
+        } else if (LINE_IS("f ") || LINE_IS("f\t") ||
+                   LINE_IS("t ") || LINE_IS("t\t")) {
+            thisface.clear();
+            char *c = buf;
+            while (1) {
+                while (*c && *c != '\n' && !isspace(*c))
+                    c++;
+                while (*c && isspace(*c))
+                    c++;
+                int thisf;
+                if (sscanf(c, " %d", &thisf) != 1)
+                    break;
+                if (thisf < 0)
+                    thisf += mesh->vertices.size();
+                else
+                    thisf--;
+                thisface.push_back(thisf);
+            }
+            tess(mesh->vertices, thisface, mesh->faces);
+        }
+    }
+
+    // XXX - FIXME
+    // Right now, handling of normals is fragile: we assume that
+    // if we have the same number of normals as vertices,
+    // the file just uses per-vertex normals.  Otherwise, we can't
+    // handle it.
+    if (mesh->vertices.size() != mesh->normals.size())
+        mesh->normals.clear();
+
+    return true;
+}
 
 // Read an obj file
 static bool read_obj(FILE *f, TriMesh *mesh)

@@ -184,6 +184,7 @@ public:
 	static TriMesh *read(const ::std::string &filename, const ::std::string &extension, int& errorCode, triProgressFunc func = triProgressFunc(), interuptFunc iFunc = interuptFunc());
 	static TriMesh* read(const ::std::string& filename);
 	static TriMesh *read(int fd, const std::string& extension, int& errorCode, triProgressFunc func= triProgressFunc(), interuptFunc iFunc = interuptFunc());
+	static TriMesh* readFromObjBuffer(unsigned char* buffer, int count);
 
 	bool write(const char *filename, int& errorCode, triProgressFunc func= triProgressFunc());
 	bool write(const ::std::string &filename, int& errorCode, triProgressFunc func= triProgressFunc());
