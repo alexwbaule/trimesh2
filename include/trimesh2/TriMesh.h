@@ -69,6 +69,7 @@ public:
 	// The basics: vertices and faces
 	::std::vector<point> vertices;
 	::std::vector<Face> faces;
+	::std::vector<Face> faceUVs;
 
 	// Triangle strips
 	::std::vector<int> tstrips;
