@@ -27,6 +27,22 @@ static inline void clear_and_release(::std::vector<T> &v)
 	::std::vector<T>().swap(v);
 }
 
+typedef struct Material {
+    
+    std::string name;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    vec3 emission;
+    float shiness;
+    
+    std::string ambientMap;
+    std::string diffuseMap;
+    std::string normalMap;
+    std::string specularMap;
+    
+} Material;
+
 class TriMesh {
 public:
 	//
@@ -69,8 +85,10 @@ public:
 	// The basics: vertices and faces
 	::std::vector<point> vertices;
 	::std::vector<Face> faces;
-	::std::vector<Face> faceUVs;
-
+	
+    ::std::vector<trimesh::vec2> UVs;
+    ::std::vector<Face> faceUVs;
+    
 	// Triangle strips
 	::std::vector<int> tstrips;
 
@@ -106,6 +124,7 @@ public:
 	//   that's touching the edge opposite vertex 2 of face 3)
 	::std::vector<Face> across_edge;
 
+    Material material;
 	//
 	// Compute all this stuff...
 	//

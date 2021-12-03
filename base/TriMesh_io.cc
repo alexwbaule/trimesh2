@@ -116,6 +116,44 @@ static void pushback(const char *buf, FILE *f)
 		ungetc(*c, f);
 }
 
+std::string trimStr(std::string& s)
+{
+    size_t n = s.find_last_not_of(" \r\n\t");
+    if (n != string::npos) {
+        s.erase(n + 1, s.size() - n);
+    }
+    n = s.find_first_not_of(" \r\n\t");
+    if (n != string::npos) {
+        s.erase(0, n);
+    }
+    return s;
+}
+
+std::vector<std::string> vStringSplit(const std::string& s, const std::string& delim = ",")
+{
+    std::vector<std::string> elems;
+    size_t pos = 0;
+    size_t len = s.length();
+    size_t delim_len = delim.length();
+    if (delim_len == 0) return elems;
+    while (pos < len)
+    {
+        int find_pos = s.find(delim, pos);
+        if (find_pos < 0)
+        {
+            std::string t = s.substr(pos, len - pos);
+            if(!t.empty())
+                elems.push_back(t);
+            break;
+        }
+
+        std::string t = s.substr(pos, find_pos - pos);
+        if (!t.empty())
+            elems.push_back(t);
+        pos = find_pos + delim_len;
+    }
+    return elems;
+}
 
 // std::string versions of read/write
 TriMesh *TriMesh::read(const ::std::string &filename, const ::std::string &extension, int& errorCode, triProgressFunc func, interuptFunc iFunc)
@@ -830,27 +868,133 @@ static bool read_obj(FILE *f, TriMesh *mesh)
             if (sscanf(buf+2, "%f %f", &x, &y) != 2) {
                 return false;
             }
-            mesh->cornerareas.push_back(vec(x, y, 0.0));
-        } else if (LINE_IS("f ") || LINE_IS("f\t") ||
-		           LINE_IS("t ") || LINE_IS("t\t")) {
-			thisface.clear();
-			char *c = buf;
-			while (1) {
-				while (*c && *c != '\n' && !isspace(*c))
-					c++;
-				while (*c && isspace(*c))
-					c++;
-				int thisf;
-				if (sscanf(c, " %d", &thisf) != 1)
-					break;
-				if (thisf < 0)
-					thisf += mesh->vertices.size();
-				else
-					thisf--;
-				thisface.push_back(thisf);
-			}
-			tess(mesh->vertices, thisface, mesh->faces);
-		}
+            mesh->UVs.push_back(vec2(x, y));
+            
+        } else if (LINE_IS("f ") || LINE_IS("f\t")) {
+            
+            std::string str = buf;
+            std::string strOfFace = str.substr(2, str.length()-2);
+            strOfFace = trimStr(strOfFace);
+            //一个face，可能包含超过3个顶点
+            std::vector<std::string> face = vStringSplit(strOfFace, " ");
+            size_t pointSize = face.size();
+        
+            for (size_t i = 2; i < pointSize; i++) {
+                
+                std::string firstStrOfPoint = face[0];
+                //一个顶点可能包含多个不同的属性
+                std::vector<std::string> firstAttributeOut = vStringSplit(firstStrOfPoint, "/");
+                
+                switch (firstAttributeOut.size()) {
+                        
+                    case 1:
+                    {
+                        //顶点
+                        int idx0 = atoi(face[0].c_str()) - 1;
+                        int idx1 = atoi(face[i-1].c_str()) - 1;
+                        int idx2 = atoi(face[i].c_str()) - 1;
+                        
+                        mesh->faces.push_back(trimesh::TriMesh::Face(idx0, idx1, idx2));
+                    }
+                        break;
+                        
+                    case 2:
+                    {
+                        
+                        if (mesh->UVs.size() > 0) {
+                            //顶点+纹理
+                            
+                            //第一个顶点
+                            int idx0 = atoi(firstAttributeOut[0].c_str()) - 1;
+                            int uvidx0 = atoi(firstAttributeOut[1].c_str()) - 1;
+                            
+                            //第二个顶点
+                            std::string secondStrOfPoint = face[i-1];
+                            std::vector<std::string> secondAttributeOut = vStringSplit(secondStrOfPoint, "/");
+                            
+                            int idx1 = atoi(secondAttributeOut[0].c_str()) - 1;
+                            int uvidx1 = atoi(secondAttributeOut[1].c_str()) - 1;
+                            
+                            //第三个顶点
+                            std::string thirdStrOfPoint = face[i];
+                            std::vector<std::string> thirdAttributeOut = vStringSplit(thirdStrOfPoint, "/");
+                            
+                            int idx2 = atoi(thirdAttributeOut[0].c_str()) - 1;
+                            int uvidx2 = atoi(thirdAttributeOut[1].c_str()) - 1;
+                            
+                            assert(idx0 > 0);
+                            assert(idx1 > 0);
+                            assert(idx2 > 0);
+                            
+                            assert(uvidx0 > 0);
+                            assert(uvidx1 > 0);
+                            assert(uvidx2 > 0);
+                            
+                            assert(firstAttributeOut.size() == 2);
+                            assert(secondAttributeOut.size() == 2);
+                            assert(thirdAttributeOut.size() == 2);
+                            
+                            
+                            mesh->faces.push_back(trimesh::TriMesh::Face(idx0, idx1, idx2));
+                            mesh->faceUVs.push_back(trimesh::TriMesh::Face(uvidx0, uvidx1, uvidx2));
+                            
+                        } else if (mesh->normals.size() > 0)
+                        {
+                            //顶点+法线
+                            
+                            //第一个顶点
+                            int idx0 = atoi(firstAttributeOut[0].c_str()) - 1;
+                                    
+                            //第二个顶点
+                            std::string secondStrOfPoint = face[i-1];
+                            std::vector<std::string> secondAttributeOut = vStringSplit(secondStrOfPoint, "/");
+                            
+                            int idx1 = atoi(secondAttributeOut[0].c_str()) - 1;
+                            
+                            //第三个顶点
+                            std::string thirdStrOfPoint = face[i];
+                            std::vector<std::string> thirdAttributeOut = vStringSplit(thirdStrOfPoint, "/");
+                            
+                            int idx2 = atoi(thirdAttributeOut[0].c_str()) - 1;
+
+                            mesh->faces.push_back(trimesh::TriMesh::Face(idx0, idx1, idx2));
+                            
+                        }
+                    }
+                        break;
+                    case 3:
+                    {
+                        //顶点+纹理+法线
+                        
+                        //第一个顶点
+                        int idx0 = atoi(firstAttributeOut[0].c_str()) - 1;
+                        int uvidx0 = atoi(firstAttributeOut[1].c_str()) - 1;
+                        
+                        //第二个顶点
+                        std::string secondStrOfPoint = face[i-1];
+                        std::vector<std::string> secondAttributeOut = vStringSplit(secondStrOfPoint, "/");
+                        
+                        int idx1 = atoi(secondAttributeOut[0].c_str()) - 1;
+                        int uvidx1 = atoi(secondAttributeOut[1].c_str()) - 1;
+                        
+                        //第三个顶点
+                        std::string thirdStrOfPoint = face[i];
+                        std::vector<std::string> thirdAttributeOut = vStringSplit(thirdStrOfPoint, "/");
+                        
+                        int idx2 = atoi(thirdAttributeOut[0].c_str()) - 1;
+                        int uvidx2 = atoi(thirdAttributeOut[1].c_str()) - 1;
+                        
+                        mesh->faces.push_back(trimesh::TriMesh::Face(idx0, idx1, idx2));
+                        mesh->faceUVs.push_back(trimesh::TriMesh::Face(uvidx0, uvidx1, uvidx2));
+                        
+                    }
+                        break;
+                        
+                    default:
+                        break;
+                }
+            }
+        }
 	}
 
 	// XXX - FIXME
@@ -967,45 +1111,6 @@ static bool IsAsciiSTL(FILE* f, unsigned int fileSize) {
 		}
 	}
 	return isASCII;
-}
-
-std::vector<std::string> vStringSplit(const std::string& s, const std::string& delim = ",")
-{
-	std::vector<std::string> elems;
-	size_t pos = 0;
-	size_t len = s.length();
-	size_t delim_len = delim.length();
-	if (delim_len == 0) return elems;
-	while (pos < len)
-	{
-		int find_pos = s.find(delim, pos);
-		if (find_pos < 0)
-		{
-			std::string t = s.substr(pos, len - pos);
-			if(!t.empty())
-				elems.push_back(t);
-			break;
-		}
-
-		std::string t = s.substr(pos, find_pos - pos);
-		if (!t.empty())
-			elems.push_back(t);
-		pos = find_pos + delim_len;
-	}
-	return elems;
-}
-
-std::string trimStr(std::string& s)
-{
-	size_t n = s.find_last_not_of(" \r\n\t");
-	if (n != string::npos) {
-		s.erase(n + 1, s.size() - n);
-	}
-	n = s.find_first_not_of(" \r\n\t");
-	if (n != string::npos) {
-		s.erase(0, n);
-	}
-	return s;
 }
 
 static bool read_stl_text(FILE* f, TriMesh* mesh, unsigned int fileSize, triProgressFunc func, interuptFunc iFunc, int& errorCode)
