@@ -4,14 +4,13 @@ file(GLOB EXTEND_SRC ${CMAKE_CURRENT_SOURCE_DIR}/extend/*.cpp)
 set(SRCS ${BASE_SRC} ${EXTEND_SRC})
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
-__add_real_target(trimesh2 lib SOURCE ${SRCS} INC ${INCS})
-set_property(TARGET trimesh2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${INCLUDE_DIR})
+__add_real_target(trimesh2 lib 
+							SOURCE ${SRCS}
+							INC ${INCS}
+							INTERFACE ${INCS}
+							)
 
-if(INSTALL_TRIMESH2)
-	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h")
-endif()
 if(CC_INSTALL_TRIMESH2)
-	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h")
+	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/include/ trimesh2)
 endif()
 
-set_property(TARGET trimesh2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/include/)
