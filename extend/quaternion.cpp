@@ -1,4 +1,4 @@
-#include "quaternion.h"
+#include "trimesh2/quaternion.h"
 
 namespace trimesh
 {
