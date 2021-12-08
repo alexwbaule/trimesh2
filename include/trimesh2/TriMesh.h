@@ -41,6 +41,8 @@ typedef struct Material {
     std::string normalMap;
     std::string specularMap;
     
+    //path of model
+    std::string modelPath;
 } Material;
 
 class TriMesh {
