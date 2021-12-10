@@ -1,6 +1,7 @@
 #ifndef TRIMESH_QUATERNION_1604124753258_H
 #define TRIMESH_QUATERNION_1604124753258_H
 #include "trimesh2/Vec.h"
+#include "trimesh2/XForm.h"
 
 namespace trimesh
 {
@@ -36,6 +37,8 @@ namespace trimesh
 	const quaternion operator/(const quaternion& quaternion, float divisor);
 	vec3 operator*(const quaternion& quaternion, const vec3& from);
 	const quaternion operator*(const quaternion& q1, const quaternion& q2);
+	
+	trimesh::fxform fromQuaterian(const trimesh::quaternion& q);
 }
 
 #endif // TRIMESH_QUATERNION_1604124753258_H
