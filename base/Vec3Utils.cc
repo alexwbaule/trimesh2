@@ -26,6 +26,9 @@ namespace trimesh
 #elif defined(__ANDROID__)
 		if (!isfinite(angle) || angle > M_PI)
 			angle = 0.0;
+#elif __WEB__
+		if (!isfinite(angle) || angle > M_PI)
+			angle = 0.0;
 #else
         if (!__finite(angle) || angle > M_PI)
             angle = 0.0;
