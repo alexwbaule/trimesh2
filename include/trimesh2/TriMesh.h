@@ -127,6 +127,9 @@ public:
 	::std::vector<Face> across_edge;
 
     Material material;
+
+	::std::vector<int>  status;
+
 	//
 	// Compute all this stuff...
 	//
