@@ -128,8 +128,6 @@ public:
 
     Material material;
 
-	::std::vector<int>  status;
-
 	//
 	// Compute all this stuff...
 	//
