@@ -55,16 +55,7 @@ typedef struct Material {
     std::string modelPath;
 } Material;
 
-struct ObjIndexedFace
-{
-	void set(const int& num) { v.resize(num); n.resize(num); t.resize(num); }
-	std::vector<int> v;
-	std::vector<int> t;
-	std::vector<int> n;
-	int tInd=0;
-	bool edge[3];// useless if the face is a polygon, no need to have variable length array
-	ivec4 clr;
-};
+
 class TriMesh {
 public:
 	//
