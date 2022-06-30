@@ -29,22 +29,42 @@ static inline void clear_and_release(::std::vector<T> &v)
 
 typedef struct Material {
     
-    std::string name;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+	int index = -1;//index of material
+	std::string name;//obj usemtl name
+    std::string ambientMap;//ka
+    std::string diffuseMap;//kd
+    std::string specularMap;//ks
+    std::string normalMap;
+	
+	vec3 ambient;//Ka
+    vec3 diffuse;//Kd
+    vec3 specular;//Ks
     vec3 emission;
     float shiness;
     
-    std::string ambientMap;
-    std::string diffuseMap;
-    std::string normalMap;
-    std::string specularMap;
-    
+	float d;//alpha
+	float Tr = 1.0f;//alpha
+
+	int illum = 2;//specular illumination
+	float Ns = 0.f;
+
+	trimesh::vec2 startUV= trimesh::vec2(0.0f,0.0f);
+	trimesh::vec2 endUV = trimesh::vec2(1.0f, 1.0f);
+	trimesh::vec2 scaleUV = trimesh::vec2(1.0f, 1.0f);
     //path of model
     std::string modelPath;
 } Material;
 
+struct ObjIndexedFace
+{
+	void set(const int& num) { v.resize(num); n.resize(num); t.resize(num); }
+	std::vector<int> v;
+	std::vector<int> t;
+	std::vector<int> n;
+	int tInd=0;
+	bool edge[3];// useless if the face is a polygon, no need to have variable length array
+	ivec4 clr;
+};
 class TriMesh {
 public:
 	//
@@ -90,6 +110,7 @@ public:
 	
     ::std::vector<trimesh::vec2> UVs;
     ::std::vector<Face> faceUVs;
+    ::std::vector<int> textureIDs;
     
 	// Triangle strips
 	::std::vector<int> tstrips;
@@ -126,6 +147,7 @@ public:
 	//   that's touching the edge opposite vertex 2 of face 3)
 	::std::vector<Face> across_edge;
 
+	std::vector<Material> m_materials;
     Material material;
 
 	//
