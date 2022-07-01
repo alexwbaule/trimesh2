@@ -102,6 +102,7 @@ public:
     ::std::vector<trimesh::vec2> UVs;
     ::std::vector<Face> faceUVs;
     ::std::vector<int> textureIDs;
+	::std::vector<Face> faceVns;
     
 	// Triangle strips
 	::std::vector<int> tstrips;
@@ -139,6 +140,7 @@ public:
 	::std::vector<Face> across_edge;
 
 	std::vector<Material> m_materials;
+	std::string mtlName;
     Material material;
 
 	//

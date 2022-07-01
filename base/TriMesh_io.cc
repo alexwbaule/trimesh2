@@ -79,6 +79,7 @@ static bool write_ply_binary(TriMesh *mesh, FILE *f,
 	bool little_endian, bool write_norm, bool write_grid, bool float_color);
 static bool write_ray(TriMesh *mesh, FILE *f);
 static bool write_obj(TriMesh *mesh, FILE *f, bool write_norm);
+static bool write_mtllib_asc(TriMesh* mesh, const char* fileName);
 static bool write_off(TriMesh *mesh, FILE *f);
 static bool write_sm(TriMesh *mesh, FILE *f);
 static bool write_stl(TriMesh *mesh, FILE *f);
@@ -2004,6 +2005,7 @@ bool TriMesh::write(const char *filename, int& errorCode, triProgressFunc func)
 			break;
 		case OBJ:
 			ok = write_obj(this, f, write_norm);
+			write_mtllib_asc(this, filename);
 			break;
 		case OFF:
 			ok = write_off(this, f);
@@ -2181,10 +2183,28 @@ static bool write_ray(TriMesh *mesh, FILE *f)
 static bool write_obj(TriMesh *mesh, FILE *f, bool write_norm)
 {
 	FPRINTF(f, "# OBJ\n");
+
+	FPRINTF(f, "mtllib %s\n", mesh->mtlName.data());
+
 	if (write_norm)
 		mesh->need_normals();
 	if (!write_verts_asc(mesh, f, "v ", write_norm ? "\nvn " : 0, 0, false, 0, ""))
 		return false;
+
+	char* vtHead = "vt ";
+	for (size_t i = 0; i < mesh->UVs.size(); i++) 
+	{
+		FPRINTF(f, "%s%.1g %.1g\n", vtHead, mesh->UVs[i][0],mesh->UVs[i][1]);
+	}
+	FPRINTF(f, "\n");
+	char* vnHead = "vn ";
+	for (size_t i = 0; i < mesh->normals.size(); i++)
+	{
+		FPRINTF(f, "%s%.6g %.6g %.6g\n", vnHead, mesh->normals[i][0],mesh->normals[i][1], mesh->normals[i][2]);
+	}
+	FPRINTF(f, "\n");
+
+
 
 	mesh->need_faces();
 
@@ -2195,21 +2215,78 @@ static bool write_obj(TriMesh *mesh, FILE *f, bool write_norm)
 		mesh->faces[i][2]++;
 	}
 
-	bool ok = true;
-	if (!write_norm) {
-		ok = write_faces_asc(mesh, f, "f ", "");
-	} else {
-		for (size_t i = 0; i < mesh->faces.size(); i++) {
-			int n = fprintf(f, "f %d//%d %d//%d %d//%d\n",
-					mesh->faces[i][0], mesh->faces[i][0],
-					mesh->faces[i][1], mesh->faces[i][1],
-					mesh->faces[i][2], mesh->faces[i][2]);
-			if (n < 6) {
-				ok = false;
-				break;
+	//bool ok = true;
+	//if (!write_norm) 
+	//{
+	//	ok = write_faces_asc(mesh, f, "f ", "");
+	//} 
+	//else 
+	//{
+	//	for (size_t i = 0; i < mesh->faces.size(); i++) 
+	//	{
+	//		int n = fprintf(f, "f %d//%d %d//%d %d//%d\n",
+	//				mesh->faces[i][0], mesh->faces[i][0],
+	//				mesh->faces[i][1], mesh->faces[i][1],
+	//				mesh->faces[i][2], mesh->faces[i][2]);
+	//		if (n < 6) 
+	//		{
+	//			ok = false;
+	//			break;
+	//		}
+	//	}
+	//}
+
+	////face normal
+	//for (size_t i = 0; i < mesh->faces.size(); i++)
+	//{
+	//	int indexP0 = mesh->faces[i].x - 1;
+	//	int indexP1 = mesh->faces[i].y - 1;
+	//	int indexP2 = mesh->faces[i].z - 1;
+	//	point apoint0 = mesh->vertices[indexP0];
+	//	point apoint1 = mesh->vertices[indexP1];
+	//	point apoint2 = mesh->vertices[indexP2];
+	//	trimesh::point thisNormal = trimesh::normalized(trimesh::trinorm(apoint0, apoint1, apoint2));
+	//	FPRINTF(f, "%s%.7g %.7g %.7g\n", "vn ",thisNormal[0], thisNormal[1], thisNormal[2]);
+	//}
+
+	char* fHead = "f ";
+	for (int n=0;n<mesh->m_materials.size();n++)
+	{
+		FPRINTF(f, "usemtl  %s\n", mesh->m_materials[n].name.data());
+		for (int m = 0; m < mesh->textureIDs.size(); m++)
+		{
+			if (n == mesh->textureIDs[m])
+			{
+				if (mesh->faces.size() == mesh->faceUVs.size() && mesh->faces.size() == mesh->faceVns.size())
+				{
+					FPRINTF(f, "%s%d/%d/%d ", fHead, mesh->faces[m].x, mesh->faceUVs[m].x+1, mesh->faceVns[m].x + 1);
+					FPRINTF(f, "%s%d/%d/%d ", fHead, mesh->faces[m].y, mesh->faceUVs[m].y + 1, mesh->faceVns[m].y + 1);
+					FPRINTF(f, "%s%d/%d/%d\n", fHead, mesh->faces[m].z, mesh->faceUVs[m].z + 1, mesh->faceVns[m].z + 1);
+				} 
+				else if (mesh->faces.size() == mesh->faceUVs.size())
+				{
+					FPRINTF(f, "%s%d/%d/ ", fHead, mesh->faces[m].x, mesh->faceUVs[m].x + 1);
+					FPRINTF(f, "%s%d/%d/ ", fHead, mesh->faces[m].y, mesh->faceUVs[m].y + 1);
+					FPRINTF(f, "%s%d/%d/\n", fHead, mesh->faces[m].z, mesh->faceUVs[m].z + 1);
+				}
+				else if (mesh->faces.size() == mesh->faceVns.size())
+				{
+					FPRINTF(f, "%s%d//%d ", fHead, mesh->faces[m].x, mesh->faceVns[m].x + 1);
+					FPRINTF(f, "%s%d//%d ", fHead, mesh->faces[m].y, mesh->faceVns[m].y + 1);
+					FPRINTF(f, "%s%d//%d\n", fHead, mesh->faces[m].z, mesh->faceVns[m].z + 1);
+				}
+				else
+				{
+					FPRINTF(f, "%s%.6g ", fHead, mesh->faces[m].x);
+					FPRINTF(f, "%s%.6g ", fHead, mesh->faces[m].y);
+					FPRINTF(f, "%s%.6g\n", fHead, mesh->faces[m].z);
+				}
+
 			}
 		}
 	}
+
+
 
 	// Put indices back
 	for (size_t i = 0; i < mesh->faces.size(); i++) {
@@ -2217,7 +2294,7 @@ static bool write_obj(TriMesh *mesh, FILE *f, bool write_norm)
 		mesh->faces[i][1]--;
 		mesh->faces[i][2]--;
 	}
-	return ok;
+	return true;
 }
 
 
@@ -2587,6 +2664,75 @@ static bool write_faces_asc(TriMesh *mesh, FILE *f,
 	}
 	return true;
 }
+
+
+bool ForCopyFile(const char* SourceFile, const char* NewFile)
+{
+	std::ifstream in;
+	std::ofstream out;
+	in.open(SourceFile, ios::binary);//打开源文件
+	if (in.fail())//打开源文件失败
+	{
+		cout << "Error 1: Fail to open the source file." << endl;
+		in.close();
+		out.close();
+		return false;
+	}
+	out.open(NewFile, ios::binary);//创建目标文件 
+	if (out.fail())//创建文件失败
+	{
+		cout << "Error 2: Fail to create the new file." << endl;
+		out.close();
+		in.close();
+		return false;
+	}
+	else//复制文件
+	{
+		out << in.rdbuf();
+		out.close();
+		in.close();
+		return true;
+	}
+}
+
+// Write mtllib
+static bool write_mtllib_asc(TriMesh* mesh, const char* fileName)
+{
+	if (mesh->m_materials.size() >0)
+	{
+		std::string absolutPath = fileName;
+		int pos = absolutPath.find_last_of("/") + 1;
+		std::string aName = absolutPath.substr(0, pos) + mesh->mtlName;
+
+		FILE* f = fopen(aName.c_str(), "wb");
+		if (!f)
+			return false;
+
+		for (Material& amaterial : mesh->m_materials)
+		{
+			FPRINTF(f, "newmtl %s\n", amaterial.name.c_str());
+			int pos = amaterial.diffuseMap.find_last_of("/") + 1;
+			std::string aName = amaterial.diffuseMap.substr(pos, amaterial.diffuseMap.length());
+			FPRINTF(f, "map_Kd %s\n\n", aName.c_str());
+		}
+		fclose(f);
+	}
+
+
+	for (Material& amaterial : mesh->m_materials)
+	{
+		std::string absolutPath = fileName;
+		int pos = absolutPath.find_last_of("/") + 1;
+		int pos2 = amaterial.diffuseMap.find_last_of("/") + 1;
+		std::string aName = amaterial.diffuseMap.substr(pos2, amaterial.diffuseMap.length());
+		std::string newPathName = absolutPath.substr(0, pos) + aName;
+		ForCopyFile(amaterial.diffuseMap.c_str(), newPathName.c_str());
+	}
+	
+
+	return true;
+}
+
 
 
 // Write a bunch of faces to a binary file
