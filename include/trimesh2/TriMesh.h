@@ -28,14 +28,7 @@ static inline void clear_and_release(::std::vector<T> &v)
 }
 
 typedef struct Material {
-    
-	int index = -1;//index of material
-	std::string name;//obj usemtl name
-    std::string ambientMap;//ka
-    std::string diffuseMap;//kd
-    std::string specularMap;//ks
-    std::string normalMap;
-	
+
 	vec3 ambient;//Ka
     vec3 diffuse;//Kd
     vec3 specular;//Ks
@@ -48,11 +41,17 @@ typedef struct Material {
 	int illum = 2;//specular illumination
 	float Ns = 0.f;
 
+	float Ni = 1.5; // ptical density 材质表面的光密度，即折射值 
+	vec3 Tf = trimesh::vec3(1.0, 1.0, 1.0); // 滤光透射率
+
 	trimesh::vec2 startUV= trimesh::vec2(0.0f,0.0f);
 	trimesh::vec2 endUV = trimesh::vec2(1.0f, 1.0f);
 	trimesh::vec2 scaleUV = trimesh::vec2(1.0f, 1.0f);
-    //path of model
-    std::string modelPath;
+
+	unsigned char* ambientMap = nullptr;
+	unsigned char* diffuseMap = nullptr;   // base color
+	unsigned char* specularMap = nullptr;
+	unsigned char* emitMap = nullptr;
 } Material;
 
 
@@ -140,8 +139,6 @@ public:
 	::std::vector<Face> across_edge;
 
 	std::vector<Material> m_materials;
-	std::string mtlName;
-    Material material;
 
 	//
 	// Compute all this stuff...
