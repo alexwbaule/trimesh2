@@ -2711,8 +2711,8 @@ static bool write_mtllib_asc(TriMesh* mesh, const char* fileName)
 		for (Material& amaterial : mesh->m_materials)
 		{
 			FPRINTF(f, "newmtl %s\n", amaterial.name.c_str());
-			int pos = amaterial.diffuseMap.find_last_of("/") + 1;
-			std::string aName = amaterial.diffuseMap.substr(pos, amaterial.diffuseMap.length());
+			int pos = amaterial.map_diffuse_filepath.find_last_of("/") + 1;
+			std::string aName = amaterial.map_diffuse_filepath.substr(pos, amaterial.map_diffuse_filepath.length());
 			FPRINTF(f, "map_Kd %s\n\n", aName.c_str());
 		}
 		fclose(f);
@@ -2723,10 +2723,10 @@ static bool write_mtllib_asc(TriMesh* mesh, const char* fileName)
 	{
 		std::string absolutPath = fileName;
 		int pos = absolutPath.find_last_of("/") + 1;
-		int pos2 = amaterial.diffuseMap.find_last_of("/") + 1;
-		std::string aName = amaterial.diffuseMap.substr(pos2, amaterial.diffuseMap.length());
+		int pos2 = amaterial.map_diffuse_filepath.find_last_of("/") + 1;
+		std::string aName = amaterial.map_diffuse_filepath.substr(pos2, amaterial.map_diffuse_filepath.length());
 		std::string newPathName = absolutPath.substr(0, pos) + aName;
-		ForCopyFile(amaterial.diffuseMap.c_str(), newPathName.c_str());
+		ForCopyFile(amaterial.map_diffuse_filepath.c_str(), newPathName.c_str());
 	}
 	
 

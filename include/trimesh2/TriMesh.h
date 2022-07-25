@@ -28,6 +28,9 @@ static inline void clear_and_release(::std::vector<T> &v)
 }
 
 typedef struct Material {
+    
+	int index = -1;//index of material
+	std::string name;//obj usemtl name
 
 	vec3 ambient;//Ka
     vec3 diffuse;//Kd
@@ -48,10 +51,15 @@ typedef struct Material {
 	trimesh::vec2 endUV = trimesh::vec2(1.0f, 1.0f);
 	trimesh::vec2 scaleUV = trimesh::vec2(1.0f, 1.0f);
 
-	unsigned char* ambientMap = nullptr;
-	unsigned char* diffuseMap = nullptr;   // base color
-	unsigned char* specularMap = nullptr;
-	unsigned char* emitMap = nullptr;
+	std::string map_normal_filepath;// ka
+	std::string map_ambient_filepath;// kd
+	std::string map_diffuse_filepath;// ks base color
+	std::string map_specular_filepath;
+	unsigned char* map_normal_buffer = nullptr;
+	unsigned char* map_ambient_buffer = nullptr;
+	unsigned char* map_diffuse_buffer = nullptr;   // base color
+	unsigned char* map_specular_buffer = nullptr;
+
 } Material;
 
 
@@ -139,6 +147,7 @@ public:
 	::std::vector<Face> across_edge;
 
 	std::vector<Material> m_materials;
+	std::string mtlName;
 
 	//
 	// Compute all this stuff...
@@ -220,7 +229,6 @@ public:
 	static TriMesh* read(const ::std::string& filename);
 	static TriMesh *read(int fd, const std::string& extension, int& errorCode, triProgressFunc func= triProgressFunc(), interuptFunc iFunc = interuptFunc());
 	static TriMesh* readFromObjBuffer(unsigned char* buffer, int count);
-
 	bool write(const char *filename, int& errorCode, triProgressFunc func= triProgressFunc());
 	bool write(const ::std::string &filename, int& errorCode, triProgressFunc func= triProgressFunc());
 	bool write(const char *filename);
