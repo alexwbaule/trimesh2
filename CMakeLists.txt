@@ -14,3 +14,7 @@ if(CC_INSTALL_TRIMESH2)
 	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/include/ trimesh2)
 endif()
 
+if(CREATE_CONAN_PACKAGE)
+	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/include/ "")
+endif()
+
