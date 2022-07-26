@@ -28,7 +28,23 @@ static inline void clear_and_release(::std::vector<T> &v)
 }
 
 typedef struct Material {
-    
+	enum MapType
+	{
+		NORMAL = 0,
+		AMBIENT,
+		DIFFUSE,
+		SPECULAR,
+		TYPE_COUNT // not a type, just used to count the type
+	};
+
+	Material()
+	{
+		for (int i = 0; i < MapType::TYPE_COUNT; i++)
+		{
+			map_endUVs[i].set(1.0f, 1.0f);
+		}
+	}
+
 	int index = -1;//index of material
 	std::string name;//obj usemtl name
 
@@ -47,18 +63,20 @@ typedef struct Material {
 	float Ni = 1.5; // ptical density 材质表面的光密度，即折射值 
 	vec3 Tf = trimesh::vec3(1.0, 1.0, 1.0); // 滤光透射率
 
-	trimesh::vec2 startUV= trimesh::vec2(0.0f,0.0f);
-	trimesh::vec2 endUV = trimesh::vec2(1.0f, 1.0f);
-	trimesh::vec2 scaleUV = trimesh::vec2(1.0f, 1.0f);
+	//trimesh::vec2 startUV= trimesh::vec2(0.0f,0.0f);
+	//trimesh::vec2 endUV = trimesh::vec2(1.0f, 1.0f);
+	//trimesh::vec2 scaleUV = trimesh::vec2(1.0f, 1.0f);
 
-	std::string map_normal_filepath;// ka
-	std::string map_ambient_filepath;// kd
-	std::string map_diffuse_filepath;// ks base color
-	std::string map_specular_filepath;
-	unsigned char* map_normal_buffer = nullptr;
-	unsigned char* map_ambient_buffer = nullptr;
-	unsigned char* map_diffuse_buffer = nullptr;   // base color
-	unsigned char* map_specular_buffer = nullptr;
+	//trimesh::vec2 map_normal_startUV = trimesh::vec2(0.0f, 0.0f);
+	//trimesh::vec2 map_normal_endUV = trimesh::vec2(1.0f, 1.0f);
+	//std::string map_normal_filepath;
+	//std::string map_ambient_filepath;// ka
+	//std::string map_diffuse_filepath;// kd base color
+	//std::string map_specular_filepath; // ks
+
+	trimesh::vec2 map_startUVs[MapType::TYPE_COUNT] = { trimesh::vec2(0.0f, 0.0f) };
+	trimesh::vec2 map_endUVs[MapType::TYPE_COUNT];
+	std::string map_filepaths[MapType::TYPE_COUNT] = { "" };
 
 } Material;
 
@@ -96,7 +114,13 @@ public:
 	// Constructor
 	//
 	TriMesh() : grid_width(-1), grid_height(-1), flag_curr(0)
-		{}
+	{
+		for (int i = 0; i < Material::TYPE_COUNT; i++)
+		{
+			map_widths[i] = -1;
+			map_heights[i] = -1;
+		}
+	}
 
 	//
 	// Members
@@ -148,6 +172,15 @@ public:
 
 	std::vector<Material> m_materials;
 	std::string mtlName;
+	//int map_width;
+	//int map_height;
+	//unsigned char* map_normal_buffer = nullptr;
+	//unsigned char* map_ambient_buffer = nullptr;
+	//unsigned char* map_diffuse_buffer = nullptr;   // base color
+	//unsigned char* map_specular_buffer = nullptr;
+	int map_widths[Material::MapType::TYPE_COUNT] = { 0 };
+	int map_heights[Material::MapType::TYPE_COUNT] = { 0 };
+	unsigned char* map_buffers[Material::MapType::TYPE_COUNT] = { nullptr };
 
 	//
 	// Compute all this stuff...
