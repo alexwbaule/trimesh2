@@ -17,6 +17,134 @@ static void tstrip_build(TriMesh &mesh, int f, vector<signed char> &face_avail,
                          vector<int> &todo);
 //static void collect_tris_in_strips(vector<int> &tstrips);
 
+unsigned char* Material::encode(unsigned& size)
+{
+	int mapTypeCount = TYPE_COUNT;
+	unsigned map_filepathsSize = 0;
+	for (int i = 0; i < TYPE_COUNT; i++)
+	{
+		map_filepathsSize += map_filepaths[i].length() * sizeof(char);
+	}
+
+	size = sizeof(int) + sizeof(Material) + name.length() * sizeof(char) + map_filepathsSize;
+	unsigned char* buffer = new unsigned char[size];
+	unsigned char* localPtr = buffer;
+
+	// +1 cause std::string end by '\0'
+	int strLen = name.length() + 1;
+	memcpy(localPtr, &strLen, sizeof(int));
+	localPtr += sizeof(int);
+	if (strLen > 1)
+	{
+		memcpy(localPtr, name.data(), strLen * sizeof(char));
+		localPtr += strLen * sizeof(char);
+	}
+	memcpy(localPtr, &ambient, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(localPtr, &diffuse, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(localPtr, &specular, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(localPtr, &emission, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(localPtr, &shiness, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(localPtr, &d, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(localPtr, &Tr, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(localPtr, &illum, sizeof(int));
+	localPtr += sizeof(int);
+	memcpy(localPtr, &Ns, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(localPtr, &Ni, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(localPtr, &Tf, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(localPtr, &mapTypeCount, sizeof(int));
+	localPtr += sizeof(int);
+	memcpy(localPtr, &map_startUVs, mapTypeCount * sizeof(vec2));
+	localPtr += mapTypeCount * sizeof(vec2);
+	memcpy(localPtr, &map_endUVs, mapTypeCount * sizeof(vec2));
+	localPtr += mapTypeCount * sizeof(vec2);
+	for (int i = 0; i < TYPE_COUNT; i++)
+	{
+		// +1 cause std::string end by '\0'
+		strLen = map_filepaths[i].length() + 1;
+		memcpy(localPtr, &strLen, sizeof(int));
+		localPtr += sizeof(int);
+		if (strLen > 1)
+		{
+			memcpy(localPtr, map_filepaths[i].data(), strLen * sizeof(char));
+			localPtr += strLen * sizeof(char);
+		}
+	}
+
+	return buffer;
+}
+
+bool Material::decode(unsigned char* buffer, unsigned size)
+{
+	int mapTypeCount = 0;
+	unsigned char* localPtr = buffer;
+
+	int strLen = 0;
+	char* strData = nullptr;
+	memcpy(&strLen, localPtr, sizeof(int));
+	localPtr += sizeof(int);
+	strData = new char[strLen];
+	memcpy(strData, localPtr, strLen * sizeof(char));
+	name = std::string(strData);
+	localPtr += strLen * sizeof(char);
+	memcpy(&ambient, localPtr, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(&diffuse, localPtr, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(&specular, localPtr, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(&emission, localPtr, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(&shiness, localPtr, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(&d, localPtr, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(&Tr, localPtr, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(&illum, localPtr, sizeof(int));
+	localPtr += sizeof(int);
+	memcpy(&Ns, localPtr, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(&Ni, localPtr, sizeof(float));
+	localPtr += sizeof(float);
+	memcpy(&Tf, localPtr, sizeof(vec3));
+	localPtr += sizeof(vec3);
+	memcpy(&mapTypeCount, localPtr, sizeof(int));
+	localPtr += sizeof(int);
+	if (mapTypeCount == TYPE_COUNT)
+	{
+		memcpy(&map_startUVs, localPtr, mapTypeCount * sizeof(vec2));
+		localPtr += mapTypeCount * sizeof(vec2);
+		memcpy(&map_endUVs, localPtr, mapTypeCount * sizeof(vec2));
+		localPtr += mapTypeCount * sizeof(vec2);
+		for (int i = 0; i < TYPE_COUNT; i++)
+		{
+			memcpy(&strLen, localPtr, sizeof(int));
+			localPtr += sizeof(int);
+			strData = nullptr;
+			if (strLen > 1)
+			{
+				strData = new char[strLen];
+				memcpy(strData, localPtr, strLen * sizeof(char));
+				map_filepaths[i] = std::string(strData);
+				localPtr += strLen * sizeof(char);
+			}
+			else
+				map_filepaths[i] = "";
+		}
+	}
+
+	return true;
+}
 
 // Convert faces to tstrips
 void TriMesh::need_tstrips(TstripRep rep)

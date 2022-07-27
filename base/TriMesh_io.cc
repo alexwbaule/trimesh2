@@ -2250,9 +2250,9 @@ static bool write_obj(TriMesh *mesh, FILE *f, bool write_norm)
 	//}
 
 	char* fHead = "f ";
-	for (int n=0;n<mesh->m_materials.size();n++)
+	for (int n=0;n<mesh->materials.size();n++)
 	{
-		FPRINTF(f, "usemtl  %s\n", mesh->m_materials[n].name.data());
+		FPRINTF(f, "usemtl  %s\n", mesh->materials[n].name.data());
 		for (int m = 0; m < mesh->textureIDs.size(); m++)
 		{
 			if (n == mesh->textureIDs[m])
@@ -2698,7 +2698,7 @@ bool ForCopyFile(const char* SourceFile, const char* NewFile)
 // Write mtllib
 static bool write_mtllib_asc(TriMesh* mesh, const char* fileName)
 {
-	if (mesh->m_materials.size() >0)
+	if (mesh->materials.size() >0)
 	{
 		std::string absolutPath = fileName;
 		int pos = absolutPath.find_last_of("/") + 1;
@@ -2708,7 +2708,7 @@ static bool write_mtllib_asc(TriMesh* mesh, const char* fileName)
 		if (!f)
 			return false;
 
-		for (Material& amaterial : mesh->m_materials)
+		for (Material& amaterial : mesh->materials)
 		{
 			FPRINTF(f, "newmtl %s\n", amaterial.name.c_str());
 			std::string& diffuseFP = amaterial.map_filepaths[Material::MapType::DIFFUSE];
@@ -2720,7 +2720,7 @@ static bool write_mtllib_asc(TriMesh* mesh, const char* fileName)
 	}
 
 
-	for (Material& amaterial : mesh->m_materials)
+	for (Material& amaterial : mesh->materials)
 	{
 		std::string absolutPath = fileName;
 		int pos = absolutPath.find_last_of("/") + 1;

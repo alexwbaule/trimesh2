@@ -45,7 +45,6 @@ typedef struct Material {
 		}
 	}
 
-	int index = -1;//index of material
 	std::string name;//obj usemtl name
 
 	vec3 ambient;//Ka
@@ -63,20 +62,12 @@ typedef struct Material {
 	float Ni = 1.5; // ptical density 材质表面的光密度，即折射值 
 	vec3 Tf = trimesh::vec3(1.0, 1.0, 1.0); // 滤光透射率
 
-	//trimesh::vec2 startUV= trimesh::vec2(0.0f,0.0f);
-	//trimesh::vec2 endUV = trimesh::vec2(1.0f, 1.0f);
-	//trimesh::vec2 scaleUV = trimesh::vec2(1.0f, 1.0f);
-
-	//trimesh::vec2 map_normal_startUV = trimesh::vec2(0.0f, 0.0f);
-	//trimesh::vec2 map_normal_endUV = trimesh::vec2(1.0f, 1.0f);
-	//std::string map_normal_filepath;
-	//std::string map_ambient_filepath;// ka
-	//std::string map_diffuse_filepath;// kd base color
-	//std::string map_specular_filepath; // ks
-
 	trimesh::vec2 map_startUVs[MapType::TYPE_COUNT] = { trimesh::vec2(0.0f, 0.0f) };
 	trimesh::vec2 map_endUVs[MapType::TYPE_COUNT];
 	std::string map_filepaths[MapType::TYPE_COUNT] = { "" };
+
+	unsigned char* encode(unsigned& size);
+	bool decode(unsigned char* buffer, unsigned size);
 
 } Material;
 
@@ -115,11 +106,6 @@ public:
 	//
 	TriMesh() : grid_width(-1), grid_height(-1), flag_curr(0)
 	{
-		for (int i = 0; i < Material::TYPE_COUNT; i++)
-		{
-			map_widths[i] = -1;
-			map_heights[i] = -1;
-		}
 	}
 
 	//
@@ -170,14 +156,8 @@ public:
 	//   that's touching the edge opposite vertex 2 of face 3)
 	::std::vector<Face> across_edge;
 
-	std::vector<Material> m_materials;
+	std::vector<Material> materials;
 	std::string mtlName;
-	//int map_width;
-	//int map_height;
-	//unsigned char* map_normal_buffer = nullptr;
-	//unsigned char* map_ambient_buffer = nullptr;
-	//unsigned char* map_diffuse_buffer = nullptr;   // base color
-	//unsigned char* map_specular_buffer = nullptr;
 	int map_widths[Material::MapType::TYPE_COUNT] = { 0 };
 	int map_heights[Material::MapType::TYPE_COUNT] = { 0 };
 	unsigned char* map_buffers[Material::MapType::TYPE_COUNT] = { nullptr };
