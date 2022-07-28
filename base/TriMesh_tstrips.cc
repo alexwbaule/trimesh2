@@ -92,10 +92,15 @@ bool Material::decode(unsigned char* buffer, unsigned size)
 	char* strData = nullptr;
 	memcpy(&strLen, localPtr, sizeof(int));
 	localPtr += sizeof(int);
-	strData = new char[strLen];
-	memcpy(strData, localPtr, strLen * sizeof(char));
-	name = std::string(strData);
-	localPtr += strLen * sizeof(char);
+	if (strLen > 1)
+	{
+		strData = new char[strLen];
+		memcpy(strData, localPtr, strLen * sizeof(char));
+		name = std::string(strData);
+		localPtr += strLen * sizeof(char);
+	}
+	else
+		name = "";
 	memcpy(&ambient, localPtr, sizeof(vec3));
 	localPtr += sizeof(vec3);
 	memcpy(&diffuse, localPtr, sizeof(vec3));
