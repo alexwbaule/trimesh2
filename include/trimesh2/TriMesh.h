@@ -109,6 +109,17 @@ public:
 	{
 	}
 
+	~TriMesh()
+	{
+		for (int i = 0; i < Material::TYPE_COUNT; i++)
+		{
+			if (map_buffers[i])
+			{
+				delete map_buffers[i];
+				map_buffers[i] = nullptr;
+			}
+		}
+	}
 	//
 	// Members
 	//
