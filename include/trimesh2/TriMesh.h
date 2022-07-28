@@ -45,6 +45,7 @@ typedef struct Material {
 		}
 	}
 
+	int index = -1;//index of material
 	std::string name;//obj usemtl name
 
 	vec3 ambient;//Ka
