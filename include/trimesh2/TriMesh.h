@@ -170,8 +170,8 @@ public:
 
 	std::vector<Material> materials;
 	std::string mtlName;
-	int map_widths[Material::MapType::TYPE_COUNT] = { 0 };
-	int map_heights[Material::MapType::TYPE_COUNT] = { 0 };
+	int map_bufferSize[Material::MapType::TYPE_COUNT] = { 0 };
+	// png buffer: should be decoded before using
 	unsigned char* map_buffers[Material::MapType::TYPE_COUNT] = { nullptr };
 
 	//
