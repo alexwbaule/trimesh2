@@ -88,6 +88,13 @@ public:
 		BSphere() : valid(false)
 			{}
 	};
+	TriMesh::TriMesh(const TriMesh& other)
+	{
+		vertices = other.vertices;
+		faces = other.faces;
+		bbox = other.bbox;
+	}
+
 	TriMesh& TriMesh::operator=(const TriMesh& other)
 	{
 		if (this == &other) return *this;
