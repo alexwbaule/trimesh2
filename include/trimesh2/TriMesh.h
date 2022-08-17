@@ -88,7 +88,7 @@ public:
 		BSphere() : valid(false)
 			{}
 	};
-	TriMesh::TriMesh(const TriMesh& other)
+	TriMesh(const TriMesh& other)
 	{
 		vertices = other.vertices;
 		faces = other.faces;
