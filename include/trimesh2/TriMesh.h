@@ -94,13 +94,6 @@ public:
 		faces = other.faces;
 		bbox = other.bbox;
 	}
-
-	TriMesh& operator=(const TriMesh& other)
-	{
-		vertices = other.vertices;
-		faces = other.faces;
-		bbox = other.bbox;
-	}
 	TriMesh& operator=(const TriMesh& other)
 	{
 		if (this == &other) return *this;
