@@ -91,6 +91,8 @@ public:
 	TriMesh(const TriMesh& other)
 	{
 		vertices = other.vertices;
+		normals = other.normals;
+
 		faces = other.faces;
 		bbox = other.bbox;
 	}
@@ -98,6 +100,7 @@ public:
 	{
 		if (this == &other) return *this;
 		vertices = other.vertices;
+		normals = other.normals;
 		faces = other.faces;
 		bbox = other.bbox;
 		return *this;
