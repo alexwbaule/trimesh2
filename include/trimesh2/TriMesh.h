@@ -95,6 +95,9 @@ public:
 
 		faces = other.faces;
 		bbox = other.bbox;
+		flags = other.flags;
+		cornerareas = other.cornerareas;
+		pointareas = other.pointareas;
 	}
 	TriMesh& operator=(const TriMesh& other)
 	{
@@ -103,6 +106,9 @@ public:
 		normals = other.normals;
 		faces = other.faces;
 		bbox = other.bbox;
+		flags = other.flags;
+		cornerareas = other.cornerareas;
+		pointareas = other.pointareas;
 		return *this;
 	}
 	//
