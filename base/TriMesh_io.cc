@@ -924,17 +924,17 @@ static bool read_obj(FILE *f, TriMesh *mesh)
                             int idx2 = atoi(thirdAttributeOut[0].c_str()) - 1;
                             int uvidx2 = atoi(thirdAttributeOut[1].c_str()) - 1;
                             
-                            assert(idx0 > 0);
-                            assert(idx1 > 0);
-                            assert(idx2 > 0);
-                            
-                            assert(uvidx0 > 0);
-                            assert(uvidx1 > 0);
-                            assert(uvidx2 > 0);
-                            
-                            assert(firstAttributeOut.size() == 2);
-                            assert(secondAttributeOut.size() == 2);
-                            assert(thirdAttributeOut.size() == 2);
+//                            assert(idx0 >= 0);
+//                            assert(idx1 >= 0);
+//                            assert(idx2 >= 0);
+//                            
+//                            assert(uvidx0 >= 0);
+//                            assert(uvidx1 >= 0);
+//                            assert(uvidx2 >= 0);
+//                            
+//                            assert(firstAttributeOut.size() == 2);
+//                            assert(secondAttributeOut.size() == 2);
+//                            assert(thirdAttributeOut.size() == 2);
                             
                             
                             mesh->faces.push_back(trimesh::TriMesh::Face(idx0, idx1, idx2));

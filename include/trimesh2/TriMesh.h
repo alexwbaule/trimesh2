@@ -93,6 +93,9 @@ public:
 		vertices = other.vertices;
 		normals = other.normals;
 
+        UVs = other.UVs;
+        faceUVs = other.faceUVs;
+        
 		faces = other.faces;
 		bbox = other.bbox;
 		flags = other.flags;
@@ -104,6 +107,10 @@ public:
 		if (this == &other) return *this;
 		vertices = other.vertices;
 		normals = other.normals;
+        
+        UVs = other.UVs;
+        faceUVs = other.faceUVs;
+        
 		faces = other.faces;
 		bbox = other.bbox;
 		flags = other.flags;
