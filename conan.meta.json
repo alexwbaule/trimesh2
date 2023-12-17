@@ -1,5 +1,7 @@
 {
 	"build_deps":[
+		"trimesh2/0.0.3",
+		"cxlog/0.0.2"
 	],
 	"search_deps":[
 	]
