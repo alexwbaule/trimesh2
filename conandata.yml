@@ -1,9 +1,9 @@
-license: "<GLP>"
-author: "<zenggui> <anoob@sina.cn>"
-url: "<xxxxxx>"
-repository: "http://172.20.180.12:8050/yanfa4/thirdparty/trimesh2"
-external_repository: "https://github.com/CrealityOfficial/trimesh2"
-description: "<trimesh2>"
-topics: "<mesh>,<algrithm>,<mesh>"
+license: GLP
+author: zenggui,anoob@sina.cn
+url: xxxxxx
+repository: http://172.20.180.12:8050/yanfa4/thirdparty/trimesh2
+external_repository: https://github.com/CrealityOfficial/trimesh2
+description: trimesh2
+topics: mesh,algrithm,mesh
 build_deps: 
 search_deps: 
