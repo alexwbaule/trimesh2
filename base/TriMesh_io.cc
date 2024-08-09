@@ -18,6 +18,7 @@ Can write: PLY (triangle mesh, range grid), OFF, OBJ, RAY, SM, STL, PTS, C++, DA
 #include <assert.h>
 
 #include "ccglobal/log.h"
+#include <cstdint>
 
 using namespace std;
 
