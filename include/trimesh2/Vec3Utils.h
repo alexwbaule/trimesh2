@@ -3,6 +3,8 @@
 #include "Vec.h"
 #include "XForm.h"
 #include "Box.h"
+#include <stdint.h>
+
 
 namespace trimesh
 {
