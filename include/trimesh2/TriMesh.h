@@ -13,6 +13,7 @@ Class for triangle meshes.
 #include "Color.h"
 #include "strutil.h"
 #include <vector>
+#include <cstdint>
 #include <functional>
 
 namespace trimesh {
