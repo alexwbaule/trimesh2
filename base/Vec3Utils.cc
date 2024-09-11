@@ -1,4 +1,5 @@
 #include "trimesh2/Vec3Utils.h"
+#include <stdint.h>
 
 namespace trimesh
 {
