@@ -1,5 +1,6 @@
 #ifndef VEC3_UTILS_H
 #define VEC3_UTILS_H
+#include <stdint.h>
 #include "Vec.h"
 #include "XForm.h"
 #include "Box.h"
